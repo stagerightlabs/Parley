@@ -1,0 +1,27 @@
+{
+    "name": "srlabs/parley",
+    "description": "",
+    "authors": [
+        {
+            "name": "Ryan C. Durham",
+            "email": "ryan@stagerightlabs.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "4.2.*"
+    },
+    "require-dev": {
+        "orchestra/testbench": "2.2.*",
+        "phpunit/phpunit": "4.2.*"
+    },
+    "autoload": {
+        "classmap": [
+            "src/migrations"
+        ],
+        "psr-4": {
+            "SRLabs\\Parley\\": "src/Parley"
+        }
+    },
+    "minimum-stability": "stable"
+}
