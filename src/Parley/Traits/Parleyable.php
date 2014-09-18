@@ -1,8 +1,8 @@
-<?php namespace SRLabs\Parley;
+<?php namespace SRLabs\Parley\Traits;
 
 use SRLabs\Parley\Models\Thread;
 
-trait ParleyTrait {
+trait Parleyable {
 
     public function parley( $creator ) {
         $thread = new Thread();
@@ -18,18 +18,7 @@ trait ParleyTrait {
                 ->get();
     }
 
-    public function retrieve() {
 
-    }
-
-
-    public function retrieveForWithTrashed() {
-
-    }
-
-    public function remove() {
-
-    }
 
 }
 
