@@ -1,4 +1,4 @@
-<?php namespace Srlabs\Parley;
+<?php namespace SRLabs\Parley;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -28,7 +28,17 @@ class ParleyServiceProvider extends ServiceProvider {
 	 */
 	public function register()
 	{
-		//
+        // Register 'Parley Manager' instance container to our ParleyManager class
+        $this->app['parley'] = $this->app->share(function($app)
+        {
+            return new ParleyManager;
+        });
+
+        $this->app->booting(function()
+        {
+            $loader = \Illuminate\Foundation\AliasLoader::getInstance();
+            $loader->alias('Parley', 'SRLabs\Parley\Facades\Parley');
+        });
 	}
 
 	/**
