@@ -1,10 +1,10 @@
 <?php namespace SRLabs\Parley\Models;
 
-class Message extends \Illuminate\Database\Eloquent {
+class Message extends \Illuminate\Database\Eloquent\Model {
 
     protected $table = 'parley_messages';
 
-    protected $fillable   = ['body', 'is_read', 'parley_thread_id', 'owner_id', 'owner_type', 'sent_at' ];
+    protected $fillable   = ['body', 'is_read', 'parley_thread_id', 'author_id', 'author_type', 'author_alias'];
 
     public function getDates()
     {
