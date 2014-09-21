@@ -19,9 +19,9 @@ class ParleyTables extends Migration {
             $table->integer('object_id')->nullable();
             $table->string('object_type')->nullable();
             $table->string('type')->nullable();
-            $table->boolean('resolved_at')->nullable();
-            $table->integer('resolved_by_id')->nullable();
-            $table->string('resolved_by_type')->nullable();
+            $table->boolean('closed_at')->nullable();
+            $table->integer('closed_by_id')->nullable();
+            $table->string('closed_by_type')->nullable();
             $table->timestamp('created_at');
             $table->timestamp('updated_at');
             $table->timestamp('deleted_at')->nullable();
@@ -31,11 +31,11 @@ class ParleyTables extends Migration {
         Schema::create('parley_messages', function($table){
             $table->increments('id');
             $table->text('body');
+            $table->string('author_alias');
+            $table->integer('author_id');
+            $table->string('author_type');
             $table->boolean('is_read')->default(0);
             $table->integer('parley_thread_id');
-            $table->integer('owner_id');
-            $table->string('owner_type');
-            $table->timestamp('sent_at');
             $table->timestamp('created_at');
             $table->timestamp('updated_at');
         });
