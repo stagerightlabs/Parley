@@ -163,6 +163,18 @@ class ThreadTests extends \Orchestra\Testbench\TestCase
         $this->assertEquals($members->count(), 1);
     }
 
+    public function testIsMember()
+    {
+        $user1 = User::create(['email' => 'test1@test.com']);
+        $user2 = User::create(['email' => 'test2@test.com']);
+
+        $thread = Thread::create(['subject' => 'Test Message']);
+        $thread->addMember($user1);
+
+        $this->assertTrue($thread->isMember($user1));
+        $this->assertFalse($thread->isMember($user2));
+    }
+
     public function testReferenceObjectHandling()
     {
         $user1 = User::create(['email' => 'test1@test.com']);
@@ -259,5 +271,44 @@ class ThreadTests extends \Orchestra\Testbench\TestCase
         $messages = $thread->messages();
 
         $this->assertEquals(2, $messages->count());
+    }
+
+    public function testMarkThreadReadAndUnread()
+    {
+        $user1 = User::create(['email' => 'test1@test.com']);
+        $user2 = User::create(['email' => 'test2@test.com']);
+
+        $thread = Thread::create(['subject' => 'Test Message']);
+        $thread->amongst($user1);
+        $thread->addMember($user2);
+
+        $thread->reply([
+            'body' => 'This is the first message in this thread',
+            'author' => $user1,
+            'alias' => $user1->email
+        ]);
+
+        $this->assertFalse( $thread->memberHasRead( $user1 ) );
+
+        $thread->markReadForMember( $user1 );
+
+        $this->assertTrue( $thread->memberHasRead( $user1 ) );
+
+        $thread->markUnreadForMember( $user1 );
+
+        $this->assertFalse( $thread->memberHasRead( $user1 ) );
+
+        $thread->markReadForMember( $user1 );
+
+        $this->assertTrue( $thread->memberHasRead( $user1 ) );
+
+        $thread->reply([
+            'body' => 'This is the second message in the thread.',
+            'author' => $user2,
+            'alias' => $user2->email
+        ]);
+
+        $this->assertFalse( $thread->memberHasRead( $user1 ) );
+
     }
 }

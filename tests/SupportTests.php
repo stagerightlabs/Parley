@@ -1,14 +1,13 @@
 <?php namespace SRLabs\tests;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent;
-use Illuminate\Database\Eloquent\Collection;
 use SRLabs\Parley\Models\Thread;
 use SRLabs\Parley\tests\prep\Group;
 use SRLabs\Parley\tests\prep\User;
-use SRLabs\Parley\tests\prep\Widget;
-use Mockery;
+use SRLabs\Parley\Support\Collection;
 
-class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
+class SupportTests extends \Orchestra\Testbench\TestCase {
     /**
      * Setup the test environment.
      */
@@ -52,15 +51,10 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
 //        ));
     }
 
-    public function tearDown()
-    {
-        Mockery::close();
-    }
-
     /**
      * Define environment setup.
      *
-     * @param  Illuminate\Foundation\Application $app
+     * @param  \Illuminate\Foundation\Application $app
      *
      * @return void
      */
@@ -109,39 +103,65 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
 
 
     /*
-     * ParleyableTrait Tests
+     * ParleySelector Tests
      */
-
-    public function testNotify()
+    public function testGetMemberThreads()
     {
-        \Event::shouldReceive('fire')->twice()
-            ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.User',
-                \Mockery::any()
-            );
-
-        \Event::shouldReceive('fire')->once()
-            ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.Group',
-                \Mockery::any()
-            );
-
-
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
         $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
-        $group = Group::create(['name' => 'admin']);
+        $group = Group::create(['name' => 'testGroup']);
 
-        $thread = \Parley::discuss('This is an important message')->amongst([$user1, $user2, $group])->message([
-            'body'   => "There was a problem with your order",
+        $thread1 = \Parley::discuss('Test Thread 1')->amongst([$user1, $user2])->message([
+            'body'   => "This is one Thread",
             'alias'  => $user1->first_name . ' ' . $user1->last_name,
             'author' => $user1
         ]);
 
-        sleep(5);
-
-        $thread->reply([
-            'body'   => "Yes, I see that there is a mistake. Please cancel my order.",
-            'alias'  => $user2->first_name . ' ' . $user2->last_name,
-            'author' => $user2
+        $thread2 = \Parley::discuss('Test Thread 2')->amongst($user1)->message([
+            'body'   => "This is another Thread",
+            'alias'  => $user1->first_name . ' ' . $user1->last_name,
+            'author' => $user1
         ]);
 
+        $thread2->close($user1);
+
+        $thread3 = \Parley::discuss('Test Thread 3')->amongst($user1)->message([
+            'body'   => "This thread will be 'deleted'",
+            'alias'  => $user1->first_name . ' ' . $user1->last_name,
+            'author' => $user1
+        ]);
+
+        $thread3->delete();
+
+        $thread4 = \Parley::discuss('Test Thread 4')->amongst($group)->message([
+            'body'   => "This is a fourth",
+            'alias'  => $group->name,
+            'author' => $group
+        ]);
+
+        $thread4->reply([
+            'body'   => "Here is a response.",
+            'alias'  => $group->name,
+            'author' => $group
+        ]);
+
+        $thread4->markReadForMember( $user1 );
+
+        $user1Threads            = \Parley::gather('all')->belongingTo($user1)->get();
+        $user1OpenThreads        = \Parley::gather('open')->belongingTo($user1)->get();
+        $user1ClosedThreads      = \Parley::gather('closed')->belongingTo($user1)->get();
+        $user1ThreadsWithTrashed = \Parley::gather('all')->withTrashed()->belongingTo($user1)->get();
+        $user1ThreadsOnlyTrashed = \Parley::gather('all')->onlyTrashed()->belongingTo($user1)->get();
+        $multiGatherThreads      = \Parley::gather('all')->belongingTo([$user1, $group])->get();
+
+        $this->assertEquals(2, $user1Threads->count());
+        $this->assertEquals(1, $user1OpenThreads->count());
+        $this->assertEquals(1, $user1ClosedThreads->count());
+        $this->assertEquals(3, $user1ThreadsWithTrashed->count());
+        $this->assertEquals(1, $user1ThreadsOnlyTrashed->count());
+        $this->assertEquals(3, $multiGatherThreads->count());
+        $this->assertInstanceOf('SRLabs\Parley\Support\Collection', $multiGatherThreads);
+        $this->assertEquals(3, $multiGatherThreads->unread());
     }
+
 }

@@ -1,14 +1,14 @@
 <?php namespace SRLabs\tests;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent;
 use Illuminate\Database\Eloquent\Collection;
 use SRLabs\Parley\Models\Thread;
 use SRLabs\Parley\tests\prep\Group;
 use SRLabs\Parley\tests\prep\User;
 use SRLabs\Parley\tests\prep\Widget;
-use Mockery;
 
-class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
+class ManagerTests extends \Orchestra\Testbench\TestCase {
     /**
      * Setup the test environment.
      */
@@ -50,11 +50,6 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
 //            '--database' => 'testbench',
 //            '--path'     => '../tests/migrations',
 //        ));
-    }
-
-    public function tearDown()
-    {
-        Mockery::close();
     }
 
     /**
@@ -109,27 +104,14 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
 
 
     /*
-     * ParleyableTrait Tests
+     * ParleyManager Tests
      */
-
-    public function testNotify()
+    public function testParleyConversation()
     {
-        \Event::shouldReceive('fire')->twice()
-            ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.User',
-                \Mockery::any()
-            );
-
-        \Event::shouldReceive('fire')->once()
-            ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.Group',
-                \Mockery::any()
-            );
-
-
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
         $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
-        $group = Group::create(['name' => 'admin']);
 
-        $thread = \Parley::discuss('This is an important message')->amongst([$user1, $user2, $group])->message([
+        $thread = \Parley::discuss('This is an important message')->amongst([$user1, $user2])->message([
             'body'   => "There was a problem with your order",
             'alias'  => $user1->first_name . ' ' . $user1->last_name,
             'author' => $user1
@@ -143,5 +125,30 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
             'author' => $user2
         ]);
 
+        $members = $thread->members();
+
+        $this->assertInstanceOf('SRLabs\Parley\Models\Thread', $thread);
+        $this->assertInstanceOf('Illuminate\Support\Collection', $members);
+        $this->assertEquals(2, $members->count());
+        $this->assertEquals($thread->subject, 'This is an important message');
+
+        $message = $thread->newestMessage();
+
+        $this->assertInstanceOf('SRLabs\Parley\Models\Message', $message);
+        $this->assertEquals('Yes, I see that there is a mistake. Please cancel my order.', $message->body);
+        $this->assertEquals(2, $thread->messages()->count());
     }
+
+
+    public function testParleyDiscussWithReferenceObject()
+    {
+        $widget = Widget::create(['name' => 'Widget1']);
+
+        $thread = \Parley::discuss('This is a Parley', $widget);
+
+        $this->assertInstanceOf('SRLabs\Parley\Models\Thread', $thread);
+        $this->assertInstanceOf('SRLabs\Parley\tests\prep\Widget', $thread->getReferenceObject());
+        $this->assertEquals($thread->subject, 'This is a Parley');
+    }
+
 }
