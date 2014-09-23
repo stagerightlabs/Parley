@@ -72,12 +72,20 @@ class Selector {
     }
 
     /**
+     * Get Threads belonging to a specific Member object
+     *
      * @param $member
      *
      * @return mixed
      */
     public function getThreads( $member )
     {
+        // Confirm this is a Parleyable object
+        if (! $this->confirmObjectIsParleyable( $member ) )
+        {
+            return new Collection();
+        }
+
         $query = Thread::join('parley_members', 'parley_threads.id', '=', 'parley_members.parley_thread_id')
             ->where('parley_members.parleyable_id', $member->id)
             ->where('parley_members.parleyable_type', $this->getObjectClassName($member))
@@ -126,6 +134,20 @@ class Selector {
 
         // Return the class name
         return $reflector->getName();
+    }
+
+    protected function confirmObjectIsParleyable( $object )
+    {
+        if ( is_object( $object ) )
+        {
+            // Reflect on the Object
+            $reflector = new ReflectionClass( $object );
+
+            // Is this object parleyable?
+            return ( in_array('SRLabs\Parley\Traits\Parleyable', $reflector->getTraitNames() ) );
+        }
+
+        return false;
     }
 
 } 

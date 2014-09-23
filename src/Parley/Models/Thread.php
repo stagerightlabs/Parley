@@ -460,16 +460,20 @@ class Thread extends \Eloquent {
      */
     protected function confirmObjectIsParleyable( $object )
     {
-        // Reflect on the Object
-        $reflector = new ReflectionClass( $object );
-
-        // Does the object have the Parleyable trait? If not, thrown an exception.
-        if ( ! in_array('SRLabs\Parley\Traits\Parleyable', $reflector->getTraitNames() ) )
+        if ( is_object( $object ) )
         {
-            throw new NonParleyableMemberException;
+            // Reflect on the Object
+            $reflector = new ReflectionClass( $object );
+
+            // Does the object have the Parleyable trait? If not, thrown an exception.
+            if ( in_array('SRLabs\Parley\Traits\Parleyable', $reflector->getTraitNames() ) )
+            {
+                return true;
+            }
         }
 
-        return true;
+        throw new NonParleyableMemberException;
+        
     }
 
     protected function confirmObjectHasId( $object )

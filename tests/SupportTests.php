@@ -164,4 +164,14 @@ class SupportTests extends \Orchestra\Testbench\TestCase {
         $this->assertEquals(3, $multiGatherThreads->unread());
     }
 
+    public function testGatherThreadsForInvalidMemberObject()
+    {
+        $group = null;
+
+        $threads = \Parley::gather('all')->belongingTo($group)->get();
+
+        $this->assertInstanceOf('SRLabs\Parley\Support\Collection', $threads);
+        $this->assertEquals(0, $threads->count());
+    }
+
 }
