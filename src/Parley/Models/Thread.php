@@ -112,11 +112,13 @@ class Thread extends \Eloquent {
      */
     public function isMember($object)
     {
-        return (bool) \DB::table('parley_members')
-            ->where('parley_thead_id', $this->id)
-            ->where('parleyable_id', $object->id)
-            ->where('parleyable_type', $this->getObjectClassName($object))
-            ->count();
+        return (count(
+                \DB::table('parley_members')
+                    ->where('parley_thread_id', $this->id)
+                    ->where('parleyable_id', $object->id)
+                    ->where('parleyable_type', $this->getObjectClassName($object))
+                    ->get()
+            ) > 0);
     }
 
     /*
@@ -152,6 +154,8 @@ class Thread extends \Eloquent {
     {
         $message = $this->reply($message);
 
+        $this->notifyMembers('new.thread');
+
         if ($message)
         {
             return $this;
@@ -169,7 +173,7 @@ class Thread extends \Eloquent {
      *
      * @throws InvalidMessageFormatException
      * @throws NonReferableObjectException
-     * @return SRLabs\Parley\Models\Message
+     * @return \SRLabs\Parley\Models\Message
      */
     public function reply( $message )
     {
@@ -200,7 +204,12 @@ class Thread extends \Eloquent {
         $data['parley_thread_id'] = $this->id;
 
         // Create the Message Object
-        return Message::create($data);
+        $message = Message::create( $data );
+
+        // Mark the thread as unread for all members.
+        $this->markUnreadForAllMembers();
+
+        return $message;
     }
 
     /**
@@ -218,7 +227,7 @@ class Thread extends \Eloquent {
     /**
      * Return the Collection of Messages associated with this Thread
      *
-     * @return Illuminate\Support\Collection
+     * @return \Illuminate\Support\Collection
      */
     public function messages()
     {
@@ -324,6 +333,104 @@ class Thread extends \Eloquent {
         $this->closed_by_id = 0;
         $this->closed_by_type = '';
         $this->save();
+    }
+
+    /**
+     * Notify Members that a Thread action has occured.
+     *
+     * @param $action
+     */
+    public function notifyMembers( $action )
+    {
+        foreach ($this->members() as $member)
+        {
+            $member->notify( $action, $this );
+        }
+    }
+
+    /**
+     * Determine if a thread has been marked read for a given user
+     *
+     * @param $member
+     *
+     * @return bool
+     */
+    public function memberHasRead( $member ) {
+
+        $status = \DB::table('parley_members')
+            ->where('parley_thread_id', $this->id)
+            ->where('parleyable_id', $member->id)
+            ->where('parleyable_type', $this->getObjectClassName($member))
+            ->pluck('is_read');
+
+        return (bool) $status;
+    }
+
+
+    /**
+     * Mark the Thread as read for a given member.
+     *
+     * @param $member
+     *
+     * @return bool
+     */
+    public function markReadForMember( $member )
+    {
+        \DB::table('parley_members')
+            ->where('parley_thread_id', $this->id)
+            ->where('parleyable_id', $member->id)
+            ->where('parleyable_type', $this->getObjectClassName($member))
+            ->update(['is_read' => 1]);
+
+        return true;
+    }
+
+    /**
+     * Mark the Thread as Read for a given member
+     *
+     * @param $member
+     *
+     * @return bool
+     */
+    public function markReadForAllMembers( )
+    {
+        \DB::table('parley_members')
+            ->where('parley_thread_id', $this->id)
+            ->update(['is_read' => 0]);
+
+        return true;
+    }
+
+    /**
+     * Mark the Thread as Unread for a given member
+     *
+     * @param $member
+     *
+     * @return bool
+     */
+    public function markUnreadForMember( $member )
+    {
+        \DB::table('parley_members')
+            ->where('parley_thread_id', $this->id)
+            ->where('parleyable_id', $member->id)
+            ->where('parleyable_type', $this->getObjectClassName($member))
+            ->update(['is_read' => 0]);
+
+        return true;
+    }
+
+    /**
+     * Mark the Thread as Unread for all members
+     *
+     * @return bool
+     */
+    public function markUnreadForAllMembers( )
+    {
+        \DB::table('parley_members')
+            ->where('parley_thread_id', $this->id)
+            ->update(['is_read' => 0]);
+
+        return true;
     }
 
     /**
