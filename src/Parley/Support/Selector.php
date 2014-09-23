@@ -6,7 +6,9 @@ use SRLabs\Parley\Models\Thread;
 
 class Selector {
 
-    protected $level;
+    protected $type;
+
+    protected $status;
 
     protected $trashed;
 
@@ -15,8 +17,9 @@ class Selector {
     public function __construct($options = null)
     {
         if ($options && is_array($options)) {
-            $this->level   = ( array_key_exists('level', $options) ? $options['level'] : 'all' );
+            $this->type   = ( array_key_exists('type', $options) ? $options['type'] : 'any' );
             $this->trashed = ( array_key_exists('trashed', $options) ? $options['trashed'] : 'no' );
+            $this->status = ( array_key_exists('status', $options) ? $options['status'] : 'all' );
         }
     }
 
@@ -34,6 +37,20 @@ class Selector {
     public function onlyTrashed()
     {
         $this->trashed = 'only';
+
+        return $this;
+    }
+
+    public function read()
+    {
+        $this->status = 'read';
+
+        return $this;
+    }
+
+    public function unread()
+    {
+        $this->status = 'unread';
 
         return $this;
     }
@@ -71,6 +88,18 @@ class Selector {
         return $results;
     }
 
+    public function count()
+    {
+        $count = 0;
+
+        foreach ($this->members as $member)
+        {
+            $count += $this->getThreads($member)->count();
+        }
+
+        return $count;
+    }
+
     /**
      * Get Threads belonging to a specific Member object
      *
@@ -105,18 +134,24 @@ class Selector {
                 break;
         }
 
-        switch ($this->level)
+        if ($this->type == 'open')
         {
-            case 'open':
-                $query = $query->whereNull('parley_threads.closed_at');
-                break;
+            $query = $query->whereNull('parley_threads.closed_at');
+        }
 
-            case 'closed':
-                $query = $query->whereNotNull('parley_threads.closed_at');
-                break;
+        if ($this->type == 'closed')
+        {
+            $query = $query->whereNotNull('parley_threads.closed_at');
+        }
 
-            default:
-                break;
+        if ($this->status == 'read')
+        {
+            $query = $query->where('parley_members.is_read', 1);
+        }
+
+        if ($this->status == 'unread')
+        {
+            $query = $query->where('parley_members.is_read', 0);
         }
 
         return $query->orderBy('updated_at', 'desc')->get();

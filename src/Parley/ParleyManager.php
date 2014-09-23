@@ -31,17 +31,29 @@ class ParleyManager {
         return $thread;
     }
 
-    public function gather($level)
+    public function gather($options = null)
     {
-        if ( ! in_array($level, ['all', 'open', 'closed']))
+        $data['type'] = 'any';
+
+        if (is_array($options))
         {
-            throw new ParleyRetrievalException("$level is not a valid retrieval option");
+            foreach ($options as $key => $value)
+            {
+                $data[$key] = $value;
+            }
         }
 
-        $data['level'] = $level;
-        $data['trashed'] = false;
-
         return new Selector($data);
+    }
+
+    public function gatherOpen()
+    {
+        return $this->gather(['type' => 'open']);
+    }
+
+    public function gatherClosed()
+    {
+        return $this->gather(['type' => 'closed']);
     }
 
 
