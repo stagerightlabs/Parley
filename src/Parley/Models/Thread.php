@@ -473,7 +473,7 @@ class Thread extends \Eloquent {
         }
 
         throw new NonParleyableMemberException;
-        
+
     }
 
     protected function confirmObjectHasId( $object )
