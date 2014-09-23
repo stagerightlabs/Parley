@@ -34,7 +34,6 @@ class ParleyTables extends Migration {
             $table->string('author_alias');
             $table->integer('author_id');
             $table->string('author_type');
-            $table->boolean('is_read')->default(0);
             $table->integer('parley_thread_id');
             $table->timestamp('created_at');
             $table->timestamp('updated_at');
@@ -45,6 +44,7 @@ class ParleyTables extends Migration {
             $table->integer('parley_thread_id');
             $table->integer('parleyable_id');
             $table->string('parleyable_type');
+            $table->boolean('is_read')->default(0);
         });
 	}
 
