@@ -1,18 +1,13 @@
 <?php namespace SRLabs\Parley;
 
-use Illuminate\Support\Collection;
 use ReflectionClass;
 use SRLabs\Parley\Exceptions\ParleyRetrievalException;
 use SRLabs\Parley\Models\Thread;
-use SRLabs\Parley\Models\Message;
+use SRLabs\Parley\Support\Collection;
+use SRLabs\Parley\Support\Selector;
+
 
 class ParleyManager {
-
-
-    public function __construct()
-    {
-
-    }
 
     /**
      * Create a new message thread, with an optional object reference
@@ -46,7 +41,7 @@ class ParleyManager {
         $data['level'] = $level;
         $data['trashed'] = false;
 
-        return new ParleySelector($data);
+        return new Selector($data);
     }
 
 
