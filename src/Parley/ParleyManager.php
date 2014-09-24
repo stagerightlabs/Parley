@@ -17,7 +17,7 @@ class ParleyManager {
      */
     public function discuss($subject, $object = null)
     {
-        $thread = Thread::create(['subject' => $subject]);
+        $thread = Thread::create(['subject' => e($subject)]);
 
         if ($object)
         {

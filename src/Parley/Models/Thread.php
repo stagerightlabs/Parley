@@ -93,7 +93,7 @@ class Thread extends \Eloquent {
     public function removeMember( $member )
     {
         // Is this Member parleyable?
-        $this->confirmObjectIsParleyable( $member );
+        $this->confirmObjectIsParleyable( $member, true );
 
         // Remove this member from the Thread
         return \DB::table('parley_members')
@@ -112,13 +112,16 @@ class Thread extends \Eloquent {
      */
     public function isMember($object)
     {
+        // Is this Member parleyable?
+        $this->confirmObjectIsParleyable( $object, true );
+
         return (count(
-                \DB::table('parley_members')
-                    ->where('parley_thread_id', $this->id)
-                    ->where('parleyable_id', $object->id)
-                    ->where('parleyable_type', $this->getObjectClassName($object))
-                    ->get()
-            ) > 0);
+            \DB::table('parley_members')
+                ->where('parley_thread_id', $this->id)
+                ->where('parleyable_id', $object->id)
+                ->where('parleyable_type', $this->getObjectClassName($object))
+                ->get()
+        ) > 0);
     }
 
     /*
@@ -197,8 +200,8 @@ class Thread extends \Eloquent {
         $this->confirmObjectHasId($message['author']);
 
         // Assemble the Message components
-        $data['body'] = $message['body'];
-        $data['author_alias'] = $message['alias'];
+        $data['body'] = e($message['body']);
+        $data['author_alias'] = e($message['alias']);
         $data['author_id'] = $message['author']->id;
         $data['author_type'] = $this->getObjectClassName($message['author']);
         $data['parley_thread_id'] = $this->id;
@@ -458,7 +461,7 @@ class Thread extends \Eloquent {
      * @return bool
      * @throws NonParleyableMemberException
      */
-    protected function confirmObjectIsParleyable( $object )
+    protected function confirmObjectIsParleyable( $object, $silent = false )
     {
         if ( is_object( $object ) )
         {
@@ -472,7 +475,12 @@ class Thread extends \Eloquent {
             }
         }
 
-        throw new NonParleyableMemberException;
+        if ( ! $silent )
+        {
+            throw new NonParleyableMemberException;
+        }
+
+        return null;
 
     }
 
