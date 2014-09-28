@@ -18,7 +18,12 @@ class ParleyServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{
-		$this->package('srlabs/parley');
+        // Register the Parley Package
+        $this->package('srlabs/parley');
+
+        // Register the Hashids service provider
+        $this->app->register('Mitch\Hashids\HashidsServiceProvider');
+
 	}
 
 	/**
@@ -34,11 +39,11 @@ class ParleyServiceProvider extends ServiceProvider {
             return new ParleyManager;
         });
 
-        $this->app->booting(function()
-        {
-            $loader = \Illuminate\Foundation\AliasLoader::getInstance();
-            $loader->alias('Parley', 'SRLabs\Parley\Facades\Parley');
-        });
+        // Regiser Aliases
+        $loader = \Illuminate\Foundation\AliasLoader::getInstance();
+        $loader->alias('Parley', 'SRLabs\Parley\Facades\Parley');
+        $loader->alias('Hashids', 'Mitch\Hashids\Hashids');
+
 	}
 
 	/**

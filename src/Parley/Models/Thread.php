@@ -208,6 +208,8 @@ class Thread extends \Eloquent {
 
         // Create the Message Object
         $message = Message::create( $data );
+        $message->hash = \Hashids::encode($message->id);
+        $message->save();
 
         // Mark the thread as unread for all members.
         $this->markUnreadForAllMembers();
