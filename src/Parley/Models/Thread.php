@@ -379,13 +379,21 @@ class Thread extends \Eloquent {
      *
      * @return bool
      */
-    public function markReadForMember( $member )
+    public function markReadForMembers( $members = array() )
     {
-        \DB::table('parley_members')
-            ->where('parley_thread_id', $this->id)
-            ->where('parleyable_id', $member->id)
-            ->where('parleyable_type', $this->getObjectClassName($member))
-            ->update(['is_read' => 1]);
+        if ( ! is_array($members))
+        {
+            $members = [$members];
+        }
+
+        foreach($members as $member)
+        {
+             \DB::table('parley_members')
+                ->where('parley_thread_id', $this->id)
+                ->where('parleyable_id', $member->id)
+                ->where('parleyable_type', $this->getObjectClassName($member))
+                ->update(['is_read' => 1]);
+        }
 
         return true;
     }

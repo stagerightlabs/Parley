@@ -290,7 +290,7 @@ class ThreadTests extends \Orchestra\Testbench\TestCase
 
         $this->assertFalse( $thread->memberHasRead( $user1 ) );
 
-        $thread->markReadForMember( $user1 );
+        $thread->markReadForMembers( $user1 );
 
         $this->assertTrue( $thread->memberHasRead( $user1 ) );
 
@@ -298,7 +298,7 @@ class ThreadTests extends \Orchestra\Testbench\TestCase
 
         $this->assertFalse( $thread->memberHasRead( $user1 ) );
 
-        $thread->markReadForMember( $user1 );
+        $thread->markReadForMembers( $user1 );
 
         $this->assertTrue( $thread->memberHasRead( $user1 ) );
 

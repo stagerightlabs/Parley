@@ -145,7 +145,7 @@ class SupportTests extends \Orchestra\Testbench\TestCase {
             'author' => $group
         ]);
 
-        $thread4->markReadForMember( $user1 );
+        $thread4->markReadForMembers( $user1 );
 
         $user1Threads            = \Parley::gather()->belongingTo($user1)->get();
         $user1OpenThreads        = \Parley::gatherOpen()->belongingTo($user1)->get();
@@ -182,7 +182,7 @@ class SupportTests extends \Orchestra\Testbench\TestCase {
             'author' => $user1
         ]);
 
-        $thread2->markReadForMember($user1);
+        $thread2->markReadForMembers($user1);
 
         $thread3 = \Parley::discuss('Test Thread 3')->amongst([$user1, $user2])->message([
             'body'   => "This thread will be 'deleted'",
