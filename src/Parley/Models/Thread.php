@@ -216,6 +216,9 @@ class Thread extends \Eloquent {
         // Mark the thread as unread for all members.
         $this->markUnreadForAllMembers();
 
+        // Change the thread's 'updated_at' timestamp
+        $this->touch();
+
         return $message;
     }
 
