@@ -131,18 +131,33 @@ class Thread extends \Eloquent {
      *
      * @return Illuminate\Support\Collection
      */
-    public function members()
+    public function members($exclusions = array())
     {
+        $exclusions = array_flatten($exclusions);
         $members = new Collection();
 
         $results = \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
             ->get();
 
-        foreach ($results as $member)
-        {
-            $object = \App::make($member->parleyable_type)->find($member->parleyable_id);
-            $members->push($object);
+        foreach ($results as $member) {
+
+            $exclude = false;
+
+            foreach ($exclusions as $target)
+            {
+                if ( $member->parleyable_id == $target->id && $this->getObjectClassName($member) == $this->getObjectClassName($target) )
+                {
+                    $exclude = true;
+                }
+            }
+
+            if (! $exclude)
+            {
+                $object = \App::make($member->parleyable_type)->find($member->parleyable_id);
+                $members->push($object);
+            }
+
         }
 
         return $members;
