@@ -140,13 +140,15 @@ class Thread extends \Eloquent {
             ->where('parley_thread_id', $this->id)
             ->get();
 
+
         foreach ($results as $member) {
 
             $exclude = false;
 
             foreach ($exclusions as $target)
             {
-                if ( $member->parleyable_id == $target->id && $this->getObjectClassName($member) == $this->getObjectClassName($target) )
+
+                if ( $member->parleyable_id == $target->id && $member->parleyable_type == $this->getObjectClassName($target) )
                 {
                     $exclude = true;
                 }
