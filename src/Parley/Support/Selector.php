@@ -118,7 +118,10 @@ class Selector {
         $query = Thread::join('parley_members', 'parley_threads.id', '=', 'parley_members.parley_thread_id')
             ->where('parley_members.parleyable_id', $member->id)
             ->where('parley_members.parleyable_type', $this->getObjectClassName($member))
-            ->select('parley_threads.*', 'parley_members.is_read as is_read');
+            ->select('parley_threads.*',
+                'parley_members.is_read as is_read',
+                'parley_members.parleyable_id as member_id',
+                'parley_members.parleyable_type as member_type');
 
         switch ($this->trashed)
         {
