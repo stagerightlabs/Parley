@@ -53,6 +53,8 @@ class Thread extends \Eloquent {
             $members = [$members];
         }
 
+        $members = array_flatten($members);
+
         foreach ($members as $member)
         {
             $this->addMember($member);
@@ -386,9 +388,11 @@ class Thread extends \Eloquent {
             $members = [$members];
         }
 
+        $members = array_flatten($members);
+
         foreach($members as $member)
         {
-             \DB::table('parley_members')
+            \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
                 ->where('parleyable_id', $member->id)
                 ->where('parleyable_type', $this->getObjectClassName($member))
