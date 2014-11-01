@@ -117,7 +117,7 @@ class Selector {
 
         $query = Thread::join('parley_members', 'parley_threads.id', '=', 'parley_members.parley_thread_id')
             ->where('parley_members.parleyable_id', $member->id)
-            ->where('parley_members.parleyable_type', $this->getObjectClassName($member))
+            ->where('parley_members.parleyable_type', get_class($member))
             ->select('parley_threads.*',
                 'parley_members.is_read as is_read',
                 'parley_members.parleyable_id as member_id',
@@ -158,20 +158,6 @@ class Selector {
         }
 
         return $query->orderBy('updated_at', 'desc')->get();
-    }
-
-    /**
-     * @param $object
-     *
-     * @return mixed
-     */
-    protected function getObjectClassName( $object )
-    {
-        // Reflect on the Object
-        $reflector = new ReflectionClass( $object );
-
-        // Return the class name
-        return $reflector->getName();
     }
 
     protected function confirmObjectIsParleyable( $object )

@@ -25,7 +25,7 @@ class ParleyManager {
             $this->confirmObjectHasId($object);
 
             $thread->object_id = $object->id;
-            $thread->object_type = $this->getObjectClassName($object);
+            $thread->object_type = get_class($object);
             $thread->save();
         }
 
@@ -83,22 +83,6 @@ class ParleyManager {
     public function getThread($hash)
     {
         return Thread::where('hash', $hash)->first();
-    }
-
-    /**
-     * Return the object's class name
-     *
-     * @param $object
-     *
-     * @return string
-     */
-    protected function getObjectClassName( $object )
-    {
-        // Reflect on the Object
-        $reflector = new ReflectionClass( $object );
-
-        // Return the class name
-        return $reflector->getName();
     }
 
     /**

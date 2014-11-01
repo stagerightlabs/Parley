@@ -7,7 +7,7 @@ trait Parleyable {
 
     public function notify($action, $thread)
     {
-        $class = $this->getObjectClassName($this);
+        $class = get_class($this);
 
         $event = 'parley.' . $action . '.for.' . str_replace('\\', '.', $class);
 
@@ -18,24 +18,6 @@ trait Parleyable {
             'member' => $this
         ]);
     }
-
-    /**
-     * Helper Function: Return an Object's class name
-     *
-     * @param $object
-     *
-     * @return string
-     */
-    protected function getObjectClassName( $object )
-    {
-        // Reflect on the Object
-        $reflector = new ReflectionClass( $object );
-
-        // Return the class name
-        return $reflector->getName();
-    }
-
-
 
 }
 

@@ -77,7 +77,7 @@ class Thread extends \Eloquent {
         \DB::table('parley_members')->insert(array(
             'parley_thread_id' => $this->id,
             'parleyable_id' => $member->id,
-            'parleyable_type' => $this->getObjectClassName($member)
+            'parleyable_type' => get_class($member)
         ));
 
         // Success!
@@ -101,7 +101,7 @@ class Thread extends \Eloquent {
         return \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
             ->where('parleyable_id', $this->id)
-            ->where('parleyable_type', $this->getObjectClassName($member))
+            ->where('parleyable_type', get_class($member))
             ->delete();
     }
 
@@ -121,7 +121,7 @@ class Thread extends \Eloquent {
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
                 ->where('parleyable_id', $object->id)
-                ->where('parleyable_type', $this->getObjectClassName($object))
+                ->where('parleyable_type', get_class($object))
                 ->get()
         ) > 0);
     }
@@ -148,7 +148,7 @@ class Thread extends \Eloquent {
             foreach ($exclusions as $target)
             {
 
-                if ( $member->parleyable_id == $target->id && $member->parleyable_type == $this->getObjectClassName($target) )
+                if ( $member->parleyable_id == $target->id && $member->parleyable_type == get_class($target) )
                 {
                     $exclude = true;
                 }
@@ -222,7 +222,7 @@ class Thread extends \Eloquent {
         $data['body'] = e($message['body']);
         $data['author_alias'] = e($message['alias']);
         $data['author_id'] = $message['author']->id;
-        $data['author_type'] = $this->getObjectClassName($message['author']);
+        $data['author_type'] = get_class($message['author']);
         $data['parley_thread_id'] = $this->id;
 
         // Create the Message Object
@@ -278,7 +278,7 @@ class Thread extends \Eloquent {
         $this->confirmObjectHasId( $object);
 
         $this->object_id = $object->id;
-        $this->object_type = $this->getObjectClassName($object);
+        $this->object_type = get_class($object);
         return $this->save();
     }
 
@@ -322,7 +322,7 @@ class Thread extends \Eloquent {
 
         // Record
         $this->closed_by_id = $closer->id;
-        $this->closed_by_type = $this->getObjectClassName($closer);
+        $this->closed_by_type = get_class($closer);
         $this->save();
     }
 
@@ -387,7 +387,7 @@ class Thread extends \Eloquent {
         $status = \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
             ->where('parleyable_id', $member->id)
-            ->where('parleyable_type', $this->getObjectClassName($member))
+            ->where('parleyable_type', get_class($member))
             ->pluck('is_read');
 
         return (bool) $status;
@@ -415,7 +415,7 @@ class Thread extends \Eloquent {
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
                 ->where('parleyable_id', $member->id)
-                ->where('parleyable_type', $this->getObjectClassName($member))
+                ->where('parleyable_type', get_class($member))
                 ->update(['is_read' => 1]);
         }
 
@@ -450,7 +450,7 @@ class Thread extends \Eloquent {
         \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
             ->where('parleyable_id', $member->id)
-            ->where('parleyable_type', $this->getObjectClassName($member))
+            ->where('parleyable_type', get_class($member))
             ->update(['is_read' => 0]);
 
         return true;
@@ -469,23 +469,6 @@ class Thread extends \Eloquent {
 
         return true;
     }
-
-    /**
-     * Helper Function: Return an Object's class name
-     *
-     * @param $object
-     *
-     * @return string
-     */
-    protected function getObjectClassName( $object )
-    {
-        // Reflect on the Object
-        $reflector = new ReflectionClass( $object );
-
-        // Return the class name
-        return $reflector->getName();
-    }
-
 
     /**
      * Helper Function: Determine if an object has the 'SRLabs\Parley\Traits\Parleyable' trait

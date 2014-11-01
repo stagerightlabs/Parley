@@ -43,26 +43,9 @@ class Message extends \Illuminate\Database\Eloquent\Model {
         // Associate the new Author with this Message
         $this->author_alias = $alias;
         $this->author_id = $member->id;
-        $this->author_type = $this->getObjectClassName($member);
+        $this->author_type = get_class($member);
         return $this->save();
     }
-
-    /**
-     * Helper Function: Return an Object's class name
-     *
-     * @param $object
-     *
-     * @return string
-     */
-    protected function getObjectClassName( $object )
-    {
-        // Reflect on the Object
-        $reflector = new ReflectionClass( $object );
-
-        // Return the class name
-        return $reflector->getName();
-    }
-
 
     /**
      * Make sure this Object is willing and able to contribute to this thread
