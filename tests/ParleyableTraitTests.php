@@ -124,6 +124,8 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
                 \Mockery::any()
             );
 
+        \Event::shouldReceive('fire')->once()
+            ->with('parley.thread.created', \Mockery::any());
 
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
         $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);

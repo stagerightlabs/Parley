@@ -3,9 +3,16 @@
 use ReflectionClass;
 use SRLabs\Parley\Models\Thread;
 use SRLabs\Parley\Support\Selector;
+use Illuminate\Events\Dispatcher;
 
 
 class ParleyManager {
+
+    public function __construct(Dispatcher $dispatcher)
+    {
+        $this->dispatcher = $dispatcher;
+    }
+
 
     /**
      * Create a new message thread, with an optional object reference
@@ -28,6 +35,9 @@ class ParleyManager {
             $thread->object_type = get_class($object);
             $thread->save();
         }
+
+        // Fire an event to notify a new thread has been created
+        $this->dispatcher->fire('parley.thread.created', [$thread]);
 
         return $thread;
     }

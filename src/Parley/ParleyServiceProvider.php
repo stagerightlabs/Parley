@@ -36,7 +36,9 @@ class ParleyServiceProvider extends ServiceProvider {
         // Register 'Parley Manager' instance container to our ParleyManager class
         $this->app['parley'] = $this->app->share(function($app)
         {
-            return new ParleyManager;
+            return new ParleyManager(
+                $this->app['events']
+            );
         });
 
         // Regiser Aliases
