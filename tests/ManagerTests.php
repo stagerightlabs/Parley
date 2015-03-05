@@ -117,7 +117,7 @@ class ManagerTests extends \Orchestra\Testbench\TestCase {
             'author' => $user1
         ]);
 
-        sleep(5);
+        sleep(3);
 
         $thread->reply([
             'body'   => "Yes, I see that there is a mistake. Please cancel my order.",
@@ -136,6 +136,10 @@ class ManagerTests extends \Orchestra\Testbench\TestCase {
 
         $this->assertInstanceOf('SRLabs\Parley\Models\Message', $message);
         $this->assertEquals('Yes, I see that there is a mistake. Please cancel my order.', $message->body);
+        $this->assertEquals(2, $thread->messages()->count());
+
+        $message = $thread->originalMessage();
+
         $this->assertEquals(2, $thread->messages()->count());
     }
 

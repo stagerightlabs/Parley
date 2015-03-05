@@ -114,7 +114,6 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
 
     public function testNotify()
     {
-<<<<<<< Updated upstream
         \Event::shouldReceive('fire')->twice()
             ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.User',
                 \Mockery::any()
@@ -124,20 +123,6 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
             ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.Group',
                 \Mockery::any()
             );
-
-        \Event::shouldReceive('fire')->once()
-            ->with('parley.thread.created', \Mockery::any());
-=======
-        // \Event::shouldReceive('fire')->twice()
-        //     ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.User',
-        //         \Mockery::any()
-        //     );
-
-        // \Event::shouldReceive('fire')->once()
-        //     ->with('parley.new.thread.for.SRLabs.Parley.tests.prep.Group',
-        //         \Mockery::any()
-        //     );
->>>>>>> Stashed changes
 
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
         $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
@@ -149,7 +134,7 @@ class ParleyableTraitTests extends \Orchestra\Testbench\TestCase {
             'author' => $user1
         ]);
 
-        sleep(5);
+        sleep(3);
 
         $thread->reply([
             'body'   => "Yes, I see that there is a mistake. Please cancel my order.",

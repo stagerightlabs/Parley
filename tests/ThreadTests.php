@@ -245,6 +245,8 @@ class ThreadTests extends \Orchestra\Testbench\TestCase
             'author' => $user1
         ]);
 
+        sleep(3);
+
         // Simulate a reply message
         $thread->reply([
             'body' => "Yes, I see that there is a mistake. Please cancel my order.",
@@ -269,6 +271,8 @@ class ThreadTests extends \Orchestra\Testbench\TestCase
             'alias'  => $user1->first_name . ' ' . $user1->last_name,
             'author' => $user1
         ]);
+
+        sleep(3);
 
         // Simulate a reply message
         $thread->reply([

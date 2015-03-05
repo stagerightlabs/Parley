@@ -139,7 +139,7 @@ class MessageTests extends \Orchestra\Testbench\TestCase
            'alias' => $user1->email
         ]);
 
-        sleep(5);
+        sleep(3);
 
         $thread->reply([
             'body' => 'This is the second message in this thread',
