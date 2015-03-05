@@ -245,7 +245,40 @@ class ThreadTests extends \Orchestra\Testbench\TestCase
             'author' => $user1
         ]);
 
+        // Simulate a reply message
+        $thread->reply([
+            'body' => "Yes, I see that there is a mistake. Please cancel my order.",
+            'alias' => $user2->first_name . ' ' . $user2->last_name,
+            'author' => $user2
+        ]);
+
+        // This is the code we are testing
         $message = $thread->newestMessage();
+
+        $this->assertInstanceOf('SRLabs\Parley\Models\Message', $message);
+        $this->assertEquals("Yes, I see that there is a mistake. Please cancel my order.", $message->body);
+    }
+
+    public function testRetrieveOriginalMessage()
+    {
+        $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
+        $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
+
+        $thread = Thread::create(['subject' => 'Test Message'])->amongst([$user1, $user2])->message([
+            'body'   => "There was a problem with your order",
+            'alias'  => $user1->first_name . ' ' . $user1->last_name,
+            'author' => $user1
+        ]);
+
+        // Simulate a reply message
+        $thread->reply([
+            'body' => "Oh dear - what happened?",
+            'alias' => $user2->first_name . ' ' . $user2->last_name,
+            'author' => $user2
+        ]);
+
+        // This si the code we are testing.    
+        $message = $thread->originalMessage();
 
         $this->assertInstanceOf('SRLabs\Parley\Models\Message', $message);
         $this->assertEquals('There was a problem with your order', $message->body);

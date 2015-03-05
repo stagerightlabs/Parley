@@ -252,6 +252,18 @@ class Thread extends \Eloquent {
     }
 
     /**
+     * Return the most recent Message associated with this Thread
+     *
+     * @return mixed
+     */
+    public function originalMessage()
+    {
+        return Message::where('parley_thread_id', $this->id)
+            ->orderBy('created_at', 'asc')
+            ->first();
+    }
+
+    /**
      * Return the Collection of Messages associated with this Thread
      *
      * @return \Illuminate\Support\Collection
