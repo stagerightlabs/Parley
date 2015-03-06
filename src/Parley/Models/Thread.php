@@ -488,7 +488,7 @@ class Thread extends \Eloquent {
      *
      * @return bool
      */
-    public function hasMemberBeenNotified( $member ) {
+    public function memberHasBeenNotified( $member ) {
 
         $status = \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
