@@ -47,6 +47,7 @@ class ParleyTables extends Migration {
             $table->integer('parleyable_id');
             $table->string('parleyable_type');
             $table->boolean('is_read')->default(0);
+            $table->boolean('notified')->default(0);
         });
 	}
 

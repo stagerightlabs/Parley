@@ -405,7 +405,6 @@ class Thread extends \Eloquent {
         return (bool) $status;
     }
 
-
     /**
      * Mark the Thread as read for a given member.
      *
@@ -435,7 +434,7 @@ class Thread extends \Eloquent {
     }
 
     /**
-     * Mark the Thread as Read for a given member
+     * Mark the Thread as Read for all members
      *
      * @param $member
      *
@@ -481,6 +480,81 @@ class Thread extends \Eloquent {
 
         return true;
     }
+
+    /**
+     * Determine if a thread member has been notified about this thread
+     *
+     * @param $member
+     *
+     * @return bool
+     */
+    public function hasMemberBeenNotified( $member ) {
+
+        $status = \DB::table('parley_members')
+            ->where('parley_thread_id', $this->id)
+            ->where('parleyable_id', $member->id)
+            ->where('parleyable_type', get_class($member))
+            ->pluck('notified');
+
+        return (bool) $status;
+    }
+
+    /**
+     * Mark the Thread as read for a given member.
+     *
+     * @param $member
+     *
+     * @return bool
+     */
+    public function markNotifiedForMembers( $members = array() )
+    {
+        if ( ! is_array($members))
+        {
+            $members = [$members];
+        }
+
+        $members = array_flatten($members);
+
+        foreach($members as $member)
+        {
+            \DB::table('parley_members')
+                ->where('parley_thread_id', $this->id)
+                ->where('parleyable_id', $member->id)
+                ->where('parleyable_type', get_class($member))
+                ->update(['notified' => 1]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Remove the notified flag for the given members
+     *
+     * @param $member
+     *
+     * @return bool
+     */
+    public function removeNotifiedFlagForMembers( array $members )
+    {
+        if ( ! is_array($members))
+        {
+            $members = [$members];
+        }
+
+        $members = array_flatten($members);
+
+        foreach($members as $member)
+        {
+            \DB::table('parley_members')
+                ->where('parley_thread_id', $this->id)
+                ->where('parleyable_id', $member->id)
+                ->where('parleyable_type', get_class($member))
+                ->update(['notified' => 0]);
+        }
+
+        return true;
+    }
+
 
     /**
      * Helper Function: Determine if an object has the 'SRLabs\Parley\Traits\Parleyable' trait
