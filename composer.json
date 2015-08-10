@@ -22,8 +22,8 @@
         "classmap": [
             "src/migrations"
         ],
-        "psr-4": {
-            "SRLabs\\Parley\\": "src/Parley"
+        "psr-0": {
+            "Parley": "src/"
         }
     },
     "minimum-stability": "stable"
