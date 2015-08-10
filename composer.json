@@ -1,6 +1,8 @@
 {
     "name": "srlabs/parley",
-    "description": "",
+    "description": "Polymorphic Messaging for Laravel",
+    "keywords": ["laravel", "notifications", "messaging", "polymorphic", "polymorphism"],
+    "license": "MIT",
     "authors": [
         {
             "name": "Ryan C. Durham",
@@ -11,7 +13,8 @@
         "php": ">=5.4.0",
         "illuminate/support": "4.2.*",
         "illuminate/database": "4.2.*",
-        "mitch/hashids": "1.x"
+        "illuminate/events": "4.2.*",
+        "mitch/hashids": "1.*"
     },
     "require-dev": {
         "orchestra/testbench": "2.2.*",
