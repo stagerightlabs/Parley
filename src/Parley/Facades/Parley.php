@@ -1,4 +1,4 @@
-<?php namespace SRLabs\Parley\Facades;
+<?php namespace Parley\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

@@ -1,4 +1,4 @@
-<?php namespace SRLabs\Parley\Support;
+<?php namespace Parley\Support;
 
 
 class Collection extends \Illuminate\Support\Collection {
@@ -18,4 +18,4 @@ class Collection extends \Illuminate\Support\Collection {
        return $count;
    }
 
-} 
+}

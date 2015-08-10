@@ -1,9 +1,9 @@
-<?php namespace SRLabs\Parley\Traits;
+<?php namespace Parley\Traits;
 
 use ReflectionClass;
-use SRLabs\Parley\Models\Thread;
+use Parley\Models\Thread;
 
-trait Parleyable {
+trait ParleyableTrait {
 
     public function notify($action, $thread)
     {

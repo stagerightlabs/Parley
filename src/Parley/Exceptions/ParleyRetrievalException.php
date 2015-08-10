@@ -1,4 +1,4 @@
-<?php  namespace SRLabs\Parley\Exceptions;
+<?php  namespace Parley\Exceptions;
 
 /**
  * This Exception is thrown when a message is submitted with out all the necessary data
@@ -13,4 +13,4 @@ class ParleyRetrievalException extends \Exception {
     {
         $this->message = $message;
     }
-} 
+}

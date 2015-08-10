@@ -1,8 +1,8 @@
-<?php namespace SRLabs\Parley\Models;
+<?php namespace Parley\Models;
 
 use ReflectionClass;
-use SRLabs\Parley\Exceptions\NonMemberObjectException;
-use SRLabs\Parley\Exceptions\NonReferableObjectException;
+use Parley\Exceptions\NonMemberObjectException;
+use Parley\Exceptions\NonReferableObjectException;
 
 class Message extends \Illuminate\Database\Eloquent\Model {
 
@@ -17,7 +17,7 @@ class Message extends \Illuminate\Database\Eloquent\Model {
 
     public function thread()
     {
-        return $this->belongsTo('SRLabs\Parley\Models\Thread', 'parley_thread_id');
+        return $this->belongsTo('Parley\Models\Thread', 'parley_thread_id');
     }
 
     /**

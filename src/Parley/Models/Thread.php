@@ -1,13 +1,13 @@
-<?php namespace SRLabs\Parley\Models;
+<?php namespace Parley\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletingTrait;
 use Illuminate\Support\Collection;
 use ReflectionClass;
-use SRLabs\Parley\Exceptions\InvalidMessageFormatException;
-use SRLabs\Parley\Exceptions\NonParleyableMemberException;
-use SRLabs\Parley\Exceptions\NonReferableObjectException;
-use SRLabs\Parley\Models\Message;
+use Parley\Exceptions\InvalidMessageFormatException;
+use Parley\Exceptions\NonParleyableMemberException;
+use Parley\Exceptions\NonReferableObjectException;
+use Parley\Models\Message;
 
 class Thread extends \Eloquent {
 
@@ -195,7 +195,7 @@ class Thread extends \Eloquent {
      *
      * @throws InvalidMessageFormatException
      * @throws NonReferableObjectException
-     * @return \SRLabs\Parley\Models\Message
+     * @return \Parley\Models\Message
      */
     public function reply( $message )
     {
@@ -557,7 +557,7 @@ class Thread extends \Eloquent {
 
 
     /**
-     * Helper Function: Determine if an object has the 'SRLabs\Parley\Traits\Parleyable' trait
+     * Helper Function: Determine if an object has the 'Parley\Traits\Parleyable' trait
      *
      * @param $object
      *
@@ -572,7 +572,7 @@ class Thread extends \Eloquent {
             $reflector = new ReflectionClass( $object );
 
             // Does the object have the Parleyable trait? If not, thrown an exception.
-            if ( in_array('SRLabs\Parley\Traits\Parleyable', $reflector->getTraitNames() ) )
+            if ( in_array('Parley\Traits\Parleyable', $reflector->getTraitNames() ) )
             {
                 return true;
             }

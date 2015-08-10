@@ -1,8 +1,8 @@
-<?php namespace SRLabs\Parley\Support;
+<?php namespace Parley\Support;
 
-use SRLabs\Parley\Support\Collection;
+use Parley\Support\Collection;
+use Parley\Models\Thread;
 use ReflectionClass;
-use SRLabs\Parley\Models\Thread;
 
 class Selector {
 
@@ -168,10 +168,10 @@ class Selector {
             $reflector = new ReflectionClass( $object );
 
             // Is this object parleyable?
-            return ( in_array('SRLabs\Parley\Traits\Parleyable', $reflector->getTraitNames() ) );
+            return ( in_array('Parley\Traits\Parleyable', $reflector->getTraitNames() ) );
         }
 
         return false;
     }
 
-} 
+}

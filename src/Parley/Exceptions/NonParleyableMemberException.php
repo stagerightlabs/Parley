@@ -1,5 +1,5 @@
-<?php  namespace SRLabs\Parley\Exceptions;
+<?php  namespace Parley\Exceptions;
 
 class NonParleyableMemberException extends \Exception {
 
-} 
+}

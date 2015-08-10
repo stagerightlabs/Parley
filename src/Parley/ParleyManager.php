@@ -1,8 +1,8 @@
-<?php namespace SRLabs\Parley;
+<?php namespace Parley;
 
 use ReflectionClass;
-use SRLabs\Parley\Models\Thread;
-use SRLabs\Parley\Support\Selector;
+use Parley\Models\Thread;
+use Parley\Support\Selector;
 
 
 class ParleyManager {
