@@ -3,11 +3,11 @@
 use Illuminate\Database\Eloquent;
 use Illuminate\Database\Eloquent\Collection;
 use Parley\Models\Thread;
-use Epiphyte\User, Epiphyte\Group;
+use Epiphyte\User;
+use Epiphyte\Group;
 
 class ParleyableTraitTests extends ParleyTestCase
 {
-
     public function testNotify()
     {
         \Event::shouldReceive('fire')->twice()
@@ -37,6 +37,5 @@ class ParleyableTraitTests extends ParleyTestCase
             'alias'  => $user2->first_name . ' ' . $user2->last_name,
             'author' => $user2
         ]);
-
     }
 }

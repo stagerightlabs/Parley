@@ -1,17 +1,19 @@
-<?php namespace Parley;
+<?php
+
+namespace Parley;
 
 use ReflectionClass;
 use Parley\Models\Thread;
 use Parley\Support\Selector;
 
-
-class ParleyManager {
-
+class ParleyManager
+{
     /**
      * Create a new message thread, with an optional object reference
      *
-     * @param      string $subject
-     * @param null $object
+     * @param  string $subject
+     * @param  null $object
+     * @return static
      */
     public function discuss($subject, $object = null)
     {
@@ -20,8 +22,7 @@ class ParleyManager {
         // Set Thread Hash
         $thread->hash = \Hashids::encode($thread->id);
 
-        if ($object)
-        {
+        if ($object) {
             $this->confirmObjectHasId($object);
 
             $thread->object_id = $object->id;
@@ -43,10 +44,8 @@ class ParleyManager {
     {
         $data['type'] = 'any';
 
-        if (is_array($options))
-        {
-            foreach ($options as $key => $value)
-            {
+        if (is_array($options)) {
+            foreach ($options as $key => $value) {
                 $data[$key] = $value;
             }
         }
@@ -93,10 +92,9 @@ class ParleyManager {
      * @return bool
      * @throws NonReferableObjectException
      */
-    protected function confirmObjectHasId( $object )
+    protected function confirmObjectHasId($object)
     {
-        if ( is_null($object->id) )
-        {
+        if (is_null($object->id)) {
             throw new NonReferableObjectException;
         }
 

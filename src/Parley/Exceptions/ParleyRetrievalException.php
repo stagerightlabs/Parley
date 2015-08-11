@@ -1,10 +1,12 @@
-<?php  namespace Parley\Exceptions;
+<?php
+
+namespace Parley\Exceptions;
 
 /**
  * This Exception is thrown when a message is submitted with out all the necessary data
  */
-class ParleyRetrievalException extends \Exception {
-
+class ParleyRetrievalException extends \Exception
+{
     /**
      * @param string $message
      * @param int    $errors

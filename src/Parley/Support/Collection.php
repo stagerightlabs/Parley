@@ -1,21 +1,19 @@
-<?php namespace Parley\Support;
+<?php
 
+namespace Parley\Support;
 
-class Collection extends \Illuminate\Support\Collection {
+class Collection extends \Illuminate\Support\Collection
+{
+    public function unread()
+    {
+        $count = 0;
 
-   public function unread()
-   {
-       $count = 0;
-
-       foreach ($this->items as $thread)
-       {
-            if ($thread->is_read == 0)
-            {
+        foreach ($this->items as $thread) {
+            if ($thread->is_read == 0) {
                 $count++;
             }
-       }
+        }
 
-       return $count;
-   }
-
+        return $count;
+    }
 }

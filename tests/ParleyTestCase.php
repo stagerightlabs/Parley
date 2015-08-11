@@ -1,7 +1,7 @@
 <?php
 
-class ParleyTestCase extends \Orchestra\Testbench\TestCase {
-
+class ParleyTestCase extends \Orchestra\Testbench\TestCase
+{
     /**
      * Setup the test environment, per the Orchestra\Testbench\TestCase documentation
      */
@@ -24,7 +24,6 @@ class ParleyTestCase extends \Orchestra\Testbench\TestCase {
             '--database' => 'testbench',
             '--path'     => '../tests/prep/migrations',
         ]);
-
     }
 
     /*
@@ -86,4 +85,16 @@ class ParleyTestCase extends \Orchestra\Testbench\TestCase {
         );
     }
 
+    /**
+     * Call artisan command and return code.
+     *
+     * @param string $command
+     * @param array $parameters
+     *
+     * @return int
+     */
+    public function artisan($command, $parameters = [])
+    {
+        // TODO: Implement artisan() method.
+    }
 }

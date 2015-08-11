@@ -9,10 +9,6 @@ use Epiphyte\User;
 class MessageTests extends ParleyTestCase
 {
 
-    /*
-     * Message Object Tests
-     */
-
     public function testCreateMessage()
     {
         $user1 = User::create(['email' => 'test1@test.com']);
@@ -44,7 +40,7 @@ class MessageTests extends ParleyTestCase
            'alias' => $user1->email
         ]);
 
-        sleep(3);
+        sleep(2);
 
         $thread->reply([
             'body' => 'This is the second message in this thread',
@@ -65,7 +61,6 @@ class MessageTests extends ParleyTestCase
 
         $this->assertEquals('test1@test.com', $author->email);
         $this->assertEquals('User 1 Alias', $message->author_alias);
-
     }
 
     public function testGetThreadFromMessage()
@@ -90,5 +85,4 @@ class MessageTests extends ParleyTestCase
         $this->assertInstanceOf('Parley\Models\Thread', $thread);
         $this->assertEquals('Test Message', $thread->subject);
     }
-
 }

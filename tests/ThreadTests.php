@@ -4,12 +4,13 @@ use Illuminate\Database\Eloquent;
 use Illuminate\Support\Collection;
 use Parley\Models\Thread;
 use Parley\Exceptions\NonParleyableMemberException;
-use Epiphyte\User, Epiphyte\Widget;
+use Epiphyte\User;
+use Epiphyte\Widget;
 
 class ThreadTests extends ParleyTestCase
 {
-
-    public function testAddMember() {
+    public function testAddMember()
+    {
         $user1 = User::create(['email' => 'test1@test.com']);
         $user2 = User::create(['email' => 'test2@test.com']);
 
@@ -24,7 +25,8 @@ class ThreadTests extends ParleyTestCase
         $this->assertEquals($members->count(), 2);
     }
 
-    public function testAmongstMembers() {
+    public function testAmongstMembers()
+    {
         $user1 = User::create(['email' => 'test1@test.com']);
         $user2 = User::create(['email' => 'test2@test.com']);
 
@@ -85,12 +87,11 @@ class ThreadTests extends ParleyTestCase
 
         $thread->setReferenceObject($widget);
 
-        $this->assertInstanceOf('Epiphyte\Widget', $thread->getReferenceObject() );
+        $this->assertInstanceOf('Epiphyte\Widget', $thread->getReferenceObject());
 
         $thread->clearReferenceObject();
 
         $this->assertNull($thread->getReferenceObject());
-
     }
 
     /**
@@ -224,19 +225,19 @@ class ThreadTests extends ParleyTestCase
             'alias' => $user1->email
         ]);
 
-        $this->assertFalse( $thread->memberHasRead( $user1 ) );
+        $this->assertFalse($thread->memberHasRead($user1));
 
-        $thread->markReadForMembers( $user1 );
+        $thread->markReadForMembers($user1);
 
-        $this->assertTrue( $thread->memberHasRead( $user1 ) );
+        $this->assertTrue($thread->memberHasRead($user1));
 
-        $thread->markUnreadForMember( $user1 );
+        $thread->markUnreadForMember($user1);
 
-        $this->assertFalse( $thread->memberHasRead( $user1 ) );
+        $this->assertFalse($thread->memberHasRead($user1));
 
-        $thread->markReadForMembers( $user1 );
+        $thread->markReadForMembers($user1);
 
-        $this->assertTrue( $thread->memberHasRead( $user1 ) );
+        $this->assertTrue($thread->memberHasRead($user1));
 
         $thread->reply([
             'body' => 'This is the second message in the thread.',
@@ -244,7 +245,6 @@ class ThreadTests extends ParleyTestCase
             'alias' => $user2->email
         ]);
 
-        $this->assertFalse( $thread->memberHasRead( $user1 ) );
-
+        $this->assertFalse($thread->memberHasRead($user1));
     }
 }

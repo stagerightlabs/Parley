@@ -7,11 +7,6 @@ use Parley\Models\Thread;
 class SandBoxTests extends ParleyTestCase
 {
 
-    /**
-     * Test running migration.
-     *
-     * @test
-     */
     public function testDBExists()
     {
         $thread = \DB::table('parley_threads')->insert(array(
@@ -30,6 +25,4 @@ class SandBoxTests extends ParleyTestCase
         $object = new NonParleyableMemberException();
         $this->assertInstanceOf('Parley\Exceptions\NonParleyableMemberException', $object);
     }
-
-
 }

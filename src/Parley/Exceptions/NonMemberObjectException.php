@@ -1,5 +1,7 @@
-<?php  namespace Parley\Exceptions;
+<?php  
 
-class NonMemberObjectException extends \Exception {
+namespace Parley\Exceptions;
 
+class NonMemberObjectException extends \Exception
+{
 }

@@ -1,10 +1,12 @@
-<?php namespace Parley\Traits;
+<?php
+
+namespace Parley\Traits;
 
 use ReflectionClass;
 use Parley\Models\Thread;
 
-trait ParleyableTrait {
-
+trait ParleyableTrait
+{
     public function notify($action, $thread)
     {
         $class = get_class($this);
@@ -18,7 +20,4 @@ trait ParleyableTrait {
             'member' => $this
         ]);
     }
-
 }
-
-

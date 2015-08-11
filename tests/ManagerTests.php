@@ -4,14 +4,13 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent;
 use Illuminate\Database\Eloquent\Collection;
 use Parley\Models\Thread;
-use Epiphyte\Group, Epiphyte\User, Epiphyte\Widget;
+use Epiphyte\Group;
+use Epiphyte\User;
+use Epiphyte\Widget;
 
-class ManagerTests extends ParleyTestCase {
+class ManagerTests extends ParleyTestCase
+{
 
-
-    /*
-     * ParleyManager Tests
-     */
     public function testParleyConversation()
     {
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
@@ -60,5 +59,4 @@ class ManagerTests extends ParleyTestCase {
         $this->assertInstanceOf('Epiphyte\Widget', $thread->getReferenceObject());
         $this->assertEquals($thread->subject, 'This is a Parley');
     }
-
 }

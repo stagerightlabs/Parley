@@ -1,11 +1,13 @@
-<?php namespace Parley\Support;
+<?php
+
+namespace Parley\Support;
 
 use Parley\Support\Collection;
 use Parley\Models\Thread;
 use ReflectionClass;
 
-class Selector {
-
+class Selector
+{
     protected $type;
 
     protected $status;
@@ -17,9 +19,9 @@ class Selector {
     public function __construct($options = null)
     {
         if ($options && is_array($options)) {
-            $this->type   = ( array_key_exists('type', $options) ? $options['type'] : 'any' );
-            $this->trashed = ( array_key_exists('trashed', $options) ? $options['trashed'] : 'no' );
-            $this->status = ( array_key_exists('status', $options) ? $options['status'] : 'all' );
+            $this->type = (array_key_exists('type', $options) ? $options['type'] : 'any');
+            $this->trashed = (array_key_exists('trashed', $options) ? $options['trashed'] : 'no');
+            $this->status = (array_key_exists('status', $options) ? $options['status'] : 'all');
         }
     }
 
@@ -62,8 +64,7 @@ class Selector {
      */
     public function belongingTo($members)
     {
-        if ( ! is_array($members) )
-        {
+        if (! is_array($members)) {
             $members = [$members];
         }
 
@@ -80,8 +81,7 @@ class Selector {
     {
         $results = new Collection();
 
-        foreach ($this->members as $member)
-        {
+        foreach ($this->members as $member) {
             $results = $results->merge($this->getThreads($member));
         }
 
@@ -92,8 +92,7 @@ class Selector {
     {
         $count = 0;
 
-        foreach ($this->members as $member)
-        {
+        foreach ($this->members as $member) {
             $count += $this->getThreads($member)->count();
         }
 
@@ -107,11 +106,10 @@ class Selector {
      *
      * @return mixed
      */
-    public function getThreads( $member )
+    public function getThreads($member)
     {
         // Confirm this is a Parleyable object
-        if (! $this->confirmObjectIsParleyable( $member ) )
-        {
+        if (! $this->confirmObjectIsParleyable($member)) {
             return new Collection();
         }
 
@@ -123,8 +121,7 @@ class Selector {
                 'parley_members.parleyable_id as member_id',
                 'parley_members.parleyable_type as member_type');
 
-        switch ($this->trashed)
-        {
+        switch ($this->trashed) {
             case 'yes':
                 $query = $query->withTrashed();
                 break;
@@ -137,41 +134,35 @@ class Selector {
                 break;
         }
 
-        if ($this->type == 'open')
-        {
+        if ($this->type == 'open') {
             $query = $query->whereNull('parley_threads.closed_at');
         }
 
-        if ($this->type == 'closed')
-        {
+        if ($this->type == 'closed') {
             $query = $query->whereNotNull('parley_threads.closed_at');
         }
 
-        if ($this->status == 'read')
-        {
+        if ($this->status == 'read') {
             $query = $query->where('parley_members.is_read', 1);
         }
 
-        if ($this->status == 'unread')
-        {
+        if ($this->status == 'unread') {
             $query = $query->where('parley_members.is_read', 0);
         }
 
         return $query->orderBy('updated_at', 'desc')->get();
     }
 
-    protected function confirmObjectIsParleyable( $object )
+    protected function confirmObjectIsParleyable($object)
     {
-        if ( is_object( $object ) )
-        {
+        if (is_object($object)) {
             // Reflect on the Object
-            $reflector = new ReflectionClass( $object );
+            $reflector = new ReflectionClass($object);
 
             // Is this object parleyable?
-            return ( in_array('Parley\Traits\ParleyableTrait', $reflector->getTraitNames() ) );
+            return (in_array('Parley\Traits\ParleyableTrait', $reflector->getTraitNames()));
         }
 
         return false;
     }
-
 }

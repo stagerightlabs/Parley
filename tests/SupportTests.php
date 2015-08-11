@@ -4,11 +4,11 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent;
 use Parley\Models\Thread;
 use Parley\Support\Collection;
-use Epiphyte\User, Epiphyte\Group;
+use Epiphyte\User;
+use Epiphyte\Group;
 
 class SupportTests extends ParleyTestCase
 {
-
     public function testGetMemberThreads()
     {
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
@@ -49,7 +49,7 @@ class SupportTests extends ParleyTestCase
             'author' => $group
         ]);
 
-        $thread4->markReadForMembers( $user1 );
+        $thread4->markReadForMembers($user1);
 
         $user1Threads            = \Parley::gather()->belongingTo($user1)->get();
         $user1OpenThreads        = \Parley::gatherOpen()->belongingTo($user1)->get();
@@ -120,5 +120,4 @@ class SupportTests extends ParleyTestCase
         $this->assertInstanceOf('Parley\Support\Collection', $threads);
         $this->assertEquals(0, $threads->count());
     }
-
 }
