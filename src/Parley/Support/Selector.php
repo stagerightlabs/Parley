@@ -168,7 +168,7 @@ class Selector {
             $reflector = new ReflectionClass( $object );
 
             // Is this object parleyable?
-            return ( in_array('Parley\Traits\Parleyable', $reflector->getTraitNames() ) );
+            return ( in_array('Parley\Traits\ParleyableTrait', $reflector->getTraitNames() ) );
         }
 
         return false;

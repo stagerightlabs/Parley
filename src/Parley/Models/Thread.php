@@ -9,7 +9,7 @@ use Parley\Exceptions\NonParleyableMemberException;
 use Parley\Exceptions\NonReferableObjectException;
 use Parley\Models\Message;
 
-class Thread extends \Eloquent {
+class Thread extends \Illuminate\Database\Eloquent\Model {
 
     /**
      * Establish the DB table associated with the Thread Model
@@ -572,7 +572,7 @@ class Thread extends \Eloquent {
             $reflector = new ReflectionClass( $object );
 
             // Does the object have the Parleyable trait? If not, thrown an exception.
-            if ( in_array('Parley\Traits\Parleyable', $reflector->getTraitNames() ) )
+            if ( in_array('Parley\Traits\ParleyableTrait', $reflector->getTraitNames() ) )
             {
                 return true;
             }

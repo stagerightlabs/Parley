@@ -1,11 +1,13 @@
-<?php namespace SRLabs\Parley\tests\prep;
+<?php
 
-use SRLabs\Parley\Traits\Parleyable;
+namespace Epiphyte;
+
+use Parley\Traits\ParleyableTrait;
 use Illuminate\Database\Eloquent;
- 
+
 class Group extends Eloquent\Model {
 
-    use Parleyable;
+    use ParleyableTrait;
 
     protected $fillable = ['name'];
-} 
+}

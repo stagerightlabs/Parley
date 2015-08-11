@@ -1,18 +1,13 @@
-<?php namespace SRLabs\Parley\tests\prep;
+<?php
 
-use SRLabs\Parley\Traits\Parleyable;
+namespace Epiphyte;
+
+use Parley\Traits\ParleyableTrait;
 use Illuminate\Database\Eloquent;
 
-/**
- * Created by Ryan C. Durham
- * Contact: ryan@stagerightlabs.com
- * Project: Parley
- * Date: 9/18/2014
- */
- 
 class User extends Eloquent\Model {
-    
-    use Parleyable;
+
+    use ParleyableTrait;
 
     protected $fillable = ['first_name', 'last_name', 'email'];
 }
