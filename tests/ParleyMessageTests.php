@@ -6,7 +6,7 @@ use Parley\Models\Thread;
 use Parley\Models\Message;
 use Epiphyte\User;
 
-class MessageTests extends ParleyTestCase
+class ParleyMessageTests extends ParleyTestCase
 {
 
     public function testCreateMessage()

@@ -4,10 +4,10 @@ use Illuminate\Database\Eloquent;
 use Parley\Exceptions\NonParleyableMemberException;
 use Parley\Models\Thread;
 
-class SandBoxTests extends ParleyTestCase
+class TestingEnvironmentTests extends ParleyTestCase
 {
 
-    public function testDBExists()
+    public function test_database_exists()
     {
         $thread = \DB::table('parley_threads')->insert(array(
             'subject' => 'test thread',
@@ -20,7 +20,7 @@ class SandBoxTests extends ParleyTestCase
         $this->assertEquals($threads->first()->id, 1);
     }
 
-    public function testObjectCreation()
+    public function test_object_instantiation()
     {
         $object = new NonParleyableMemberException();
         $this->assertInstanceOf('Parley\Exceptions\NonParleyableMemberException', $object);

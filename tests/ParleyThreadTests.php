@@ -7,7 +7,7 @@ use Parley\Exceptions\NonParleyableMemberException;
 use Epiphyte\User;
 use Epiphyte\Widget;
 
-class ThreadTests extends ParleyTestCase
+class ParleyThreadTests extends ParleyTestCase
 {
     public function testAddMember()
     {
@@ -247,4 +247,6 @@ class ThreadTests extends ParleyTestCase
 
         $this->assertFalse($thread->memberHasRead($user1));
     }
+
+    // todo add test for $thread->members and $thread->members($except)
 }
