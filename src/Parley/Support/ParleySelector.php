@@ -2,30 +2,27 @@
 
 namespace Parley\Support;
 
-use Parley\Support\Collection;
+use Illuminate\Support\Collection;
 use Parley\Models\Thread;
+use Parley\Traits\ParleyHelpersTrait;
 use ReflectionClass;
 
-class Selector
+class ParleySelector
 {
+    use ParleyHelpersTrait;
+
     protected $type;
-
     protected $status;
-
     protected $trashed;
-
     protected $members;
 
-    public function __construct($options = null)
+    public function __construct($members)
     {
-        if ($options && is_array($options)) {
-            $this->type = (array_key_exists('type', $options) ? $options['type'] : 'any');
-            $this->trashed = (array_key_exists('trashed', $options) ? $options['trashed'] : 'no');
-            $this->status = (array_key_exists('status', $options) ? $options['status'] : 'all');
-        }
+        $this->members = $members;
     }
 
     /**
+     * Include "deleted" threads in the selection
      *
      * @return $this
      */
@@ -36,6 +33,11 @@ class Selector
         return $this;
     }
 
+    /**
+     * Select only threads that have been "deleted" (aka soft-deleted)
+     *
+     * @return $this
+     */
     public function onlyTrashed()
     {
         $this->trashed = 'only';
@@ -43,6 +45,11 @@ class Selector
         return $this;
     }
 
+    /**
+     * Select only threads that have been read
+     *
+     * @return $this
+     */
     public function read()
     {
         $this->status = 'read';
@@ -50,6 +57,11 @@ class Selector
         return $this;
     }
 
+    /**
+     * Select only unread threads
+     *
+     * @return $this
+     */
     public function unread()
     {
         $this->status = 'unread';
@@ -58,22 +70,23 @@ class Selector
     }
 
     /**
-     * @param $members
+     * Return a count of the threads that have been selected
      *
-     * @return $this
+     * @return int
      */
-    public function belongingTo($members)
+    public function count()
     {
-        if (! is_array($members)) {
-            $members = [$members];
+        $count = 0;
+
+        foreach ($this->members as $member) {
+            $count += $this->getThreadsForMember($member)->count();
         }
 
-        $this->members = $members;
-
-        return $this;
+        return $count;
     }
 
     /**
+     * Return a collection of the threads that have been selected
      *
      * @return Collection
      */
@@ -82,21 +95,10 @@ class Selector
         $results = new Collection();
 
         foreach ($this->members as $member) {
-            $results = $results->merge($this->getThreads($member));
+            $results = $results->merge($this->getThreadsForMember($member));
         }
 
         return $results;
-    }
-
-    public function count()
-    {
-        $count = 0;
-
-        foreach ($this->members as $member) {
-            $count += $this->getThreads($member)->count();
-        }
-
-        return $count;
     }
 
     /**
@@ -106,7 +108,7 @@ class Selector
      *
      * @return mixed
      */
-    public function getThreads($member)
+    public function getThreadsForMember($member)
     {
         // Confirm this is a Parleyable object
         if (! $this->confirmObjectIsParleyable($member)) {
@@ -151,18 +153,5 @@ class Selector
         }
 
         return $query->orderBy('updated_at', 'desc')->get();
-    }
-
-    protected function confirmObjectIsParleyable($object)
-    {
-        if (is_object($object)) {
-            // Reflect on the Object
-            $reflector = new ReflectionClass($object);
-
-            // Is this object parleyable?
-            return (in_array('Parley\Traits\ParleyableTrait', $reflector->getTraitNames()));
-        }
-
-        return false;
     }
 }

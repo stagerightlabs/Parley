@@ -3,52 +3,35 @@
 namespace Parley\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\SoftDeletingTrait;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Parley\Traits\ParleyHelpersTrait;
 use ReflectionClass;
 use Parley\Exceptions\InvalidMessageFormatException;
 use Parley\Exceptions\NonParleyableMemberException;
 use Parley\Exceptions\NonReferableObjectException;
-use Parley\Models\Message;
 
 class Thread extends \Illuminate\Database\Eloquent\Model
 {
-    /**
-     * Establish the DB table associated with the Thread Model
-     *
-     * @var string
-     */
+    use ParleyHelpersTrait;
+
+    /*****************************************************************************
+     * Eloquent Configuration
+     *****************************************************************************/
+    use SoftDeletes;
     protected $table = 'parley_threads';
-
-
-    /**
-     * Declare model fields available for Mass Assignment
-     *
-     * @var array
-     */
-    protected $fillable   = ['subject', 'object_id', 'object_type', 'resolved_at', 'resolve_by_id', 'resolved_by_type' ];
-
-    /**
-     * Establish the date fields to be turned into Carbon objects
-     *
-     * @return array
-     */
-    public function getDates()
-    {
-        return ['created_at', 'updated_at', 'closed_at', 'deleted_at'];
-    }
-
-    /**
-     * Allow for Soft-Deleting of Threads
-     */
-    use SoftDeletingTrait;
+    protected $dates = ['created_at', 'updated_at', 'closed_at', 'deleted_at'];
+    protected $fillable   = [
+        'subject', 'object_id', 'object_type', 'resolved_at', 'resolve_by_id', 'resolved_by_type'
+    ];
 
     /**
      * Assign a group of members to this thread
      *
      * @param $members
+     * @return $this
      */
-    public function amongst($members)
+    public function withParticipants($members)
     {
         if (! is_array($members)) {
             $members = [$members];
@@ -60,13 +43,17 @@ class Thread extends \Illuminate\Database\Eloquent\Model
             $this->addMember($member);
         }
 
+        $this->notifyMembers('new.thread');
+
         return $this;
     }
 
     /**
-     * Add a member to a Parley Thread
+     * Add a single member this thread
      *
      * @param $member
+     * @return bool
+     * @throws NonParleyableMemberException
      */
     public function addMember($member)
     {
@@ -74,18 +61,26 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         $this->confirmObjectIsParleyable($member);
 
         // Add the member to the Parley
-        \DB::table('parley_members')->insert(array(
+        return \DB::table('parley_members')->insert(array(
             'parley_thread_id' => $this->id,
             'parleyable_id' => $member->id,
             'parleyable_type' => get_class($member)
         ));
-
-        // Success!
-        return true;
     }
 
     /**
-     * Remove a Thread Member from the Thread
+     * Convenience wrapper for the Add Member method
+     *
+     * @param $member
+     * @return bool
+     */
+    public function addParticipant($member)
+    {
+        return $this->addMember($member);
+    }
+
+    /**
+     * Remove a Member from this Thread
      *
      * @param $member
      *
@@ -106,42 +101,61 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     }
 
     /**
-     * Determine if an object is a member of a Parley Thread
+     * Convenience wrapper for the remove member method
      *
-     * @param $object
+     * @param $member
+     * @return mixed
+     */
+    public function removeParticipant($member)
+    {
+        return $this->removeMember($member);
+    }
+
+    /**
+     * Determine if an member is a member of this thread
+     *
+     * @param $member
      *
      * @return bool
      */
-    public function isMember($object)
+    public function isMember($member)
     {
         // Is this Member parleyable?
-        $this->confirmObjectIsParleyable($object, true);
+        $this->confirmObjectIsParleyable($member, true);
 
         return (count(
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
-                ->where('parleyable_id', $object->id)
-                ->where('parleyable_type', get_class($object))
+                ->where('parleyable_id', $member->id)
+                ->where('parleyable_type', get_class($member))
                 ->get()
         ) > 0);
     }
 
-    /*
+    /**
+     * Convenience wrapper for the isMember method
+     *
+     * @param $member
+     * @return bool
+     */
+    public function isParticipant($member)
+    {
+        return $this->isMember($member);
+    }
+
+    /**
      * Retrieve all the members associated with this Parley Thread
      *
-     * @return Illuminate\Support\Collection
+     * @return Collection
      */
-    public function members($exclusions = array())
+    public function members($options = array())
     {
-        $exclusions = array_flatten($exclusions);
-        $members = new Collection();
+        $exclusions = array_key_exists('except', $options) ? array_flatten($options['except']) : [];
 
-        $results = \DB::table('parley_members')
-            ->where('parley_thread_id', $this->id)
-            ->get();
+        $members = \DB::table('parley_members')->where('parley_thread_id', $this->id)->get();
+        $filteredMembers = new Collection();
 
-
-        foreach ($results as $member) {
+        foreach ($members as $member) {
             $exclude = false;
 
             foreach ($exclusions as $target) {
@@ -152,11 +166,11 @@ class Thread extends \Illuminate\Database\Eloquent\Model
 
             if (! $exclude) {
                 $object = \App::make($member->parleyable_type)->find($member->parleyable_id);
-                $members->push($object);
+                $filteredMembers->push($object);
             }
         }
 
-        return $members;
+        return $filteredMembers;
     }
 
     /**
@@ -164,19 +178,15 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      *
      * @param array $message
      *
+     * @return $this
      * @throws InvalidMessageFormatException
      */
-    public function message($message = array())
+    public function initialMessage($message = array())
     {
-        $message = $this->reply($message);
+        $this->createMessage($message);
 
-        $this->notifyMembers('new.thread');
-
-        if ($message) {
-            return $this;
-        } else {
-            throw new InvalidMessageFormatException('There was a problem creating the first message for this thread');
-        }
+        // Mark the thread as "unread" for the author
+        $this->markReadForMembers($message['author']);
     }
 
     /**
@@ -190,35 +200,8 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function reply($message)
     {
-        // Make sure the message array contains all the necessary details.
-        if (! array_key_exists('body', $message)) {
-            throw new InvalidMessageFormatException('Message must have a body string');
-        }
+        $this->createMessage($message);
 
-        if (! array_key_exists('alias', $message)) {
-            throw new InvalidMessageFormatException('Message must have an author alias');
-        }
-
-        if (! array_key_exists('author', $message)) {
-            throw new InvalidMessageFormatException('Message must be provided with Authoring Object');
-        }
-
-        // Confirm the Author object contains a valid 'id' field
-        $this->confirmObjectHasId($message['author']);
-
-        // Assemble the Message components
-        $data['body'] = e($message['body']);
-        $data['author_alias'] = e($message['alias']);
-        $data['author_id'] = $message['author']->id;
-        $data['author_type'] = get_class($message['author']);
-        $data['parley_thread_id'] = $this->id;
-
-        // Create the Message Object
-        $message = Message::create($data);
-        $message->hash = \Hashids::encode($message->id);
-        $message->save();
-
-        // Mark the thread as unread for all members.
         $this->markUnreadForAllMembers();
 
         // Change the thread's 'updated_at' timestamp
@@ -263,7 +246,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
             ->get();
     }
 
-
     /**
      * Set the Object that this Thread is concerned with, if needed.
      *
@@ -274,17 +256,17 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function setReferenceObject($object)
     {
-        // Confirm that this object can be referred to by Id
         $this->confirmObjectHasId($object);
 
+        // Set the object referece fields
         $this->object_id = $object->id;
         $this->object_type = get_class($object);
+
         return $this->save();
     }
 
-
     /**
-     * Return the Object this Thread is concerned with, if any
+     * Return the object this Thread is concerned with, if any
      *
      * @return mixed
      */
@@ -300,29 +282,32 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Remove the Thread's reference Object
      *
-     * @return mixed
+     * @return bool
      */
     public function clearReferenceObject()
     {
         $this->object_id = null;
         $this->object_type = '';
+
         return $this->save();
     }
 
     /**
      * Mark this Thread as Closed
      *
-     * @param $closer - Thread Member Object
+     * @param $member - Thread Member Object
+     * @return bool
      */
-    public function close($closer)
+    public function closedBy($member)
     {
-        // Mark the Thread as Closed
+        // Setting a value to the "closed_at" field marks the thread as closed.
         $this->closed_at = new Carbon;
 
-        // Record
-        $this->closed_by_id = $closer->id;
-        $this->closed_by_type = get_class($closer);
-        $this->save();
+        // Make a note of which member closed the thread
+        $this->closed_by_id = $member->id;
+        $this->closed_by_type = get_class($member);
+
+        return $this->save();
     }
 
     /**
@@ -336,13 +321,12 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     }
 
     /**
-     * Return the object that closed the thread
+     * Return the member that closed the thread
      *
      * @return null
      */
     public function getCloser()
     {
-
         // First Make sure this thread has been closed.
         if (! $this->isClosed()) {
             return null;
@@ -352,15 +336,19 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         return $object = \App::make($this->closed_by_type)->find($this->closed_by_id);
     }
 
+
     /**
-     * Mark a thread as open
+     * Mark thread as open
+     *
+     * @return bool
      */
-    public function open()
+    public function reopen()
     {
         $this->closed_at = null;
         $this->closed_by_id = 0;
         $this->closed_by_type = '';
-        $this->save();
+
+        return $this->save();
     }
 
     /**
@@ -373,6 +361,8 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         foreach ($this->members() as $member) {
             $member->notify($action, $this);
         }
+
+        // todo set notification flag on parley_members table
     }
 
     /**
@@ -382,7 +372,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      *
      * @return bool
      */
-    public function memberHasRead($member)
+    public function hasBeenReadByMember($member)
     {
         $status = \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
@@ -396,17 +386,13 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Mark the Thread as read for a given member.
      *
-     * @param $member
-     *
+     * @param array $members
      * @return bool
+     *
      */
     public function markReadForMembers($members = array())
     {
-        if (! is_array($members)) {
-            $members = [$members];
-        }
-
-        $members = array_flatten($members);
+        $members = $this->ensureArrayable($members);
 
         foreach ($members as $member) {
             \DB::table('parley_members')
@@ -422,8 +408,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Mark the Thread as Read for all members
      *
-     * @param $member
-     *
      * @return bool
      */
     public function markReadForAllMembers()
@@ -438,17 +422,21 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Mark the Thread as Unread for a given member
      *
-     * @param $member
+     * @param $members
      *
      * @return bool
      */
-    public function markUnreadForMember($member)
+    public function markUnreadForMembers($members)
     {
-        \DB::table('parley_members')
-            ->where('parley_thread_id', $this->id)
-            ->where('parleyable_id', $member->id)
-            ->where('parleyable_type', get_class($member))
-            ->update(['is_read' => 0]);
+        $members = $this->ensureArrayable($members);
+
+        foreach ($members as $member) {
+            \DB::table('parley_members')
+                ->where('parley_thread_id', $this->id)
+                ->where('parleyable_id', $member->id)
+                ->where('parleyable_type', get_class($member))
+                ->update(['is_read' => 0]);
+        }
 
         return true;
     }
@@ -486,7 +474,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     }
 
     /**
-     * Mark the Thread as read for a given member.
+     * Set the "notified" flag for a set of members
      *
      * @param $member
      *
@@ -494,11 +482,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function markNotifiedForMembers($members = array())
     {
-        if (! is_array($members)) {
-            $members = [$members];
-        }
-
-        $members = array_flatten($members);
+        $members = $this->ensureArrayable($members);
 
         foreach ($members as $member) {
             \DB::table('parley_members')
@@ -514,17 +498,13 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Remove the notified flag for the given members
      *
-     * @param $member
+     * @param $members
      *
      * @return bool
      */
     public function removeNotifiedFlagForMembers(array $members)
     {
-        if (! is_array($members)) {
-            $members = [$members];
-        }
-
-        $members = array_flatten($members);
+        $members = $this->ensureArrayable($members);
 
         foreach ($members as $member) {
             \DB::table('parley_members')
@@ -537,40 +517,39 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         return true;
     }
 
-
     /**
-     * Helper Function: Determine if an object has the 'Parley\Traits\Parleyable' trait
+     * Create a new message object for this thread
      *
-     * @param $object
-     *
-     * @return bool
-     * @throws NonParleyableMemberException
+     * @return Message
+     * @throws InvalidMessageFormatException
      */
-    protected function confirmObjectIsParleyable($object, $silent = false)
+    protected function createMessage(array $message)
     {
-        if (is_object($object)) {
-            // Reflect on the Object
-            $reflector = new ReflectionClass($object);
-
-            // Does the object have the Parleyable trait? If not, thrown an exception.
-            if (in_array('Parley\Traits\ParleyableTrait', $reflector->getTraitNames())) {
-                return true;
+        // Validate $message structure
+        foreach (['title', 'body', 'author'] as $key) {
+            if (!in_array($key, $message)) {
+                throw new InvalidMessageFormatException("Missing {$key} from message attributes");
             }
         }
 
-        if (! $silent) {
-            throw new NonParleyableMemberException;
-        }
+        // Specify an author alias if it doesn't already exist
+        $messge['alias']  = array_key_exists('alias', $message) ? $message['alias'] : $message['author']->alias;
 
-        return null;
-    }
+        // Confirm the Author member contains a valid 'id' field
+        $this->confirmObjectHasId($message['author']);
 
-    protected function confirmObjectHasId($object)
-    {
-        if (is_null($object->id)) {
-            throw new NonReferableObjectException;
-        }
+        // Assemble the Message components
+        $data['body'] = e($message['body']);
+        $data['author_alias'] = e($message['alias']);
+        $data['author_id'] = $message['author']->id;
+        $data['author_type'] = get_class($message['author']);
+        $data['parley_thread_id'] = $this->id;
 
-        return true;
+        // Create the Message Object
+        $message = Message::create($data);
+        $message->hash = \Hashids::encode($message->id);
+        $message->save();
+
+        return $message;
     }
 }

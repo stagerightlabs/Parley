@@ -8,15 +8,18 @@ use Parley\Exceptions\NonReferableObjectException;
 
 class Message extends \Illuminate\Database\Eloquent\Model
 {
+    /*****************************************************************************
+     * Eloquent Configuration
+     *****************************************************************************/
     protected $table = 'parley_messages';
-
     protected $fillable = ['body', 'is_read', 'parley_thread_id', 'author_id', 'author_type', 'author_alias'];
+    protected $dates = ['created_at', 'updated_at', 'sent_at'];
 
-    public function getDates()
-    {
-        return ['created_at', 'updated_at', 'sent_at'];
-    }
-
+    /**
+     * The thread that owns this message
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function thread()
     {
         return $this->belongsTo('Parley\Models\Thread', 'parley_thread_id');
@@ -36,6 +39,15 @@ class Message extends \Illuminate\Database\Eloquent\Model
         return \App::make($this->author_type)->find($this->author_id);
     }
 
+    /**
+     * Set the authoring object for this message
+     *
+     * @param $alias
+     * @param $member
+     * @return bool
+     * @throws NonMemberObjectException
+     * @throws NonReferableObjectException
+     */
     public function setAuthor($alias, $member)
     {
         // Confirm that this is a valid author
@@ -49,7 +61,7 @@ class Message extends \Illuminate\Database\Eloquent\Model
     }
 
     /**
-     * Make sure this Object is willing and able to contribute to this thread
+     * Make sure the specified author is allowable
      *
      * @param $author
      *

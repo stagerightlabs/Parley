@@ -2,32 +2,38 @@
 
 namespace Parley;
 
+use Parley\Exceptions\InvalidMessageFormatException;
+use Parley\Exceptions\NonReferableObjectException;
+use Parley\Support\ParleySelector;
+use Parley\Traits\ParleyHelpersTrait;
 use ReflectionClass;
 use Parley\Models\Thread;
 use Parley\Support\Selector;
 
 class ParleyManager
 {
+    use ParleyHelpersTrait;
+
     /**
      * Create a new message thread, with an optional object reference
      *
-     * @param  string $subject
+     * @param array $message
      * @param  null $object
      * @return static
+     * @throws InvalidMessageFormatException
+     * @throws NonReferableObjectException
      */
-    public function discuss($subject, $object = null)
+    public function discuss(array $message, $object = null)
     {
+        // Create a new Parley Thread
         $thread = Thread::create(['subject' => e($subject)]);
-
-        // Set Thread Hash
         $thread->hash = \Hashids::encode($thread->id);
+        $thread->initialMessage($message);
+        $thread->save();
 
+        // Set the reference object, if one has been assigned
         if ($object) {
-            $this->confirmObjectHasId($object);
-
-            $thread->object_id = $object->id;
-            $thread->object_type = get_class($object);
-            $thread->save();
+            $thread->setReferenceObject($object);
         }
 
         return $thread;
@@ -36,68 +42,29 @@ class ParleyManager
     /**
      * Gather Threads for a group of objects
      *
-     * @param null $options
+     * @param mixed $members
      *
-     * @return Selector
+     * @return ParleySelector
      */
-    public function gather($options = null)
+    public function gatherFor($members)
     {
-        $data['type'] = 'any';
+        $members = $this->ensureArrayable($members);
 
-        if (is_array($options)) {
-            foreach ($options as $key => $value) {
-                $data[$key] = $value;
-            }
-        }
-
-        return new Selector($data);
-    }
-
-    /**
-     * Gather Open threads for a group of objects
-     *
-     * @return Selector
-     */
-    public function gatherOpen()
-    {
-        return $this->gather(['type' => 'open']);
-    }
-
-    /**
-     * Gather Closed threads for a group of objects
-     *
-     * @return Selector
-     */
-    public function gatherClosed()
-    {
-        return $this->gather(['type' => 'closed']);
+        return new ParleySelector($members);
     }
 
     /**
      * Get a thread by its hash value
-     * @param $hash
+     * @param string|int $id
      *
      * @return mixed
      */
-    public function getThread($hash)
+    public function getThread($id)
     {
-        return Thread::where('hash', $hash)->first();
-    }
-
-    /**
-     * Confirm that an object has a valid Id field
-     *
-     * @param $object
-     *
-     * @return bool
-     * @throws NonReferableObjectException
-     */
-    protected function confirmObjectHasId($object)
-    {
-        if (is_null($object->id)) {
-            throw new NonReferableObjectException;
+        if (is_string($id)) {
+            $id = \Hashids::decode($id)[0];
         }
 
-        return true;
+        return Thread::find($id);
     }
 }
