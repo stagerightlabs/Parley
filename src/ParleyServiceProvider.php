@@ -2,6 +2,7 @@
 
 namespace Parley;
 
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 
 class ParleyServiceProvider extends ServiceProvider
@@ -20,11 +21,7 @@ class ParleyServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Register the Parley Package
-        $this->package('srlabs/parley');
-
-        // Register the Hashids service provider, if it hasn't been registered already
-        $this->app->register('Mitch\Hashids\HashidsServiceProvider');
+        // Nothing to see here...
     }
 
     /**
@@ -34,22 +31,19 @@ class ParleyServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        // Register the Vinkla/Hashids Service Provider
+        $this->app->register('Vinkla\Hashids\HashidsServiceProvider');
+
         // Register the Parley Manager to the IOC
         $this->app['parley'] = $this->app->share(function ($app) {
             return new ParleyManager;
         });
 
-        // Regiser Facade Aliases
-        $loader = \Illuminate\Foundation\AliasLoader::getInstance();
-        $aliases = $loader->getAliases();
+        // Load the Parley and Hashids Facade Aliases
+        $loader = AliasLoader::getInstance();
+        $loader->alias('Parley', 'Parley\Facades\Parley');
+        $loader->alias('Hashids', 'Vinkla\Hashids\Facades\Hashids');
 
-        if (!array_key_exists('Parley', $aliases)) {
-            $loader->alias('Parley', 'Parley\Facades\Parley');
-        }
-
-        if (!array_key_exists('Hashids', $aliases)) {
-            $loader->alias('Hashids', 'Mitch\Hashids\Hashids');
-        }
     }
 
     /**
@@ -59,6 +53,6 @@ class ParleyServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return array();
+        return ['parley'];
     }
 }
