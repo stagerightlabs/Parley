@@ -15,7 +15,6 @@ class ParleyTables extends Migration {
         // Create the 'Parley Models' table
         Schema::create('parley_threads', function($table){
             $table->increments('id');
-            $table->string('hash',10)->nullable()->unique();
             $table->string('subject');
             $table->integer('object_id')->nullable();
             $table->string('object_type')->nullable();
@@ -31,7 +30,6 @@ class ParleyTables extends Migration {
         // Create the 'Parley Messages' table
         Schema::create('parley_messages', function($table){
             $table->increments('id');
-            $table->string('hash', 10)->nullable()->unique();
             $table->text('body');
             $table->string('author_alias');
             $table->integer('author_id');

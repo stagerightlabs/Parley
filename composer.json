@@ -10,24 +10,23 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "illuminate/support": "4.2.*",
-        "illuminate/database": "4.2.*",
-        "illuminate/events": "4.2.*",
-        "mitch/hashids": "1.*"
+        "php": ">=5.5.9",
+        "illuminate/support": "5.1.*@dev",
+        "illuminate/contracts": "5.1.*@dev",
+        "illuminate/database": "5.1.*@dev",
+        "illuminate/events": "5.1.*@dev"
     },
     "require-dev": {
-        "orchestra/testbench": "2.2.*",
+        "orchestra/testbench": "3.1.*",
         "phpunit/phpunit": "4.2.*",
-        "mockery/mockery": "0.9.2"
+        "mockery/mockery": "0.9.*"
     },
     "autoload": {
         "classmap": [
-            "src/migrations",
             "tests"
         ],
-        "psr-0": {
-            "Parley": "src/"
+        "psr-4": {
+            "Parley\\": "src/"
         }
     },
     "minimum-stability": "stable"
