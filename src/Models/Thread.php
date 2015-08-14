@@ -157,11 +157,12 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Retrieve all the members associated with this Parley Thread
      *
+     * @param array $options
      * @return Collection
      */
-    public function members($options = array())
+    public function getMembers(array $options = [])
     {
-        $exclusions = array_key_exists('except', $options) ? array_flatten($options['except']) : [];
+        $exclusions = array_key_exists('except', $options) ? $this->ensureArrayable($options['except']) : [];
 
         $members = \DB::table('parley_members')->where('parley_thread_id', $this->id)->get();
         $filteredMembers = new Collection();

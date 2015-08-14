@@ -26,7 +26,7 @@ class ParleyManagerTests extends ParleyTestCase
             'author' => $this->irina
         ]);
 
-        $members = $parley->members();
+        $members = $parley->getMembers();
         $newestMessage = $parley->newestMessage();
         $originalMessage = $parley->originalMessage();
 
@@ -63,7 +63,7 @@ class ParleyManagerTests extends ParleyTestCase
         // Parley #1
         $parley1 = $this->simulate_a_conversation("Happy Name Day!");
         $parley1->reply([
-            'body'   => "Nonsense - you are a beautiful young woman",
+            'body'   => "Nonsense - you should be celebrating!",
             'author' => $this->nikolai
         ]);
         // Parley #2
