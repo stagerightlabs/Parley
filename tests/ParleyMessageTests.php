@@ -36,7 +36,6 @@ class ParleyMessageTests extends ParleyTestCase
         $this->assertEquals($replyMessage->body, 'I am feeling so very old today.');
         $this->assertEquals($replyMessage->author_alias, 'Irina Sergeyevna Prozorova');
         $this->assertNotEquals($replyMessage->author_alias, $this->irina->alias);
-
     }
 
     public function test_creating_messages_without_explicit_alias()
@@ -62,7 +61,6 @@ class ParleyMessageTests extends ParleyTestCase
 
         $this->assertInstanceOf('Parley\Models\Message', $replyMessage);
         $this->assertEquals($replyMessage->author_alias, $this->irina->alias);
-
     }
 
     public function test_setting_and_retrieving_message_author()

@@ -6,7 +6,6 @@ use Parley\Contracts\ParleyableInterface;
 
 class Group extends \Illuminate\Database\Eloquent\Model implements ParleyableInterface
 {
-
     protected $fillable = ['name'];
 
     public function getAliasAttribute()

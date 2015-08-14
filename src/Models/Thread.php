@@ -272,7 +272,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function messages()
     {
-        return $this->hasMany('Parley\Models\Message','parley_thread_id')->orderBy('created_at', 'desc');
+        return $this->hasMany('Parley\Models\Message', 'parley_thread_id')->orderBy('created_at', 'desc');
     }
 
     /**

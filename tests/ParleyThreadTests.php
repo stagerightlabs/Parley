@@ -251,5 +251,4 @@ class ParleyThreadTests extends ParleyTestCase
         $this->assertInstanceOf('Illuminate\Support\Collection', $members);
         $this->assertEquals(1, $members->count());
     }
-
 }

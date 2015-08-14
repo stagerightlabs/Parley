@@ -6,7 +6,6 @@ use Parley\Models\Thread;
 
 class TestingEnvironmentTests extends ParleyTestCase
 {
-
     public function test_database_exists()
     {
         $thread = \DB::table('parley_threads')->insert(array(

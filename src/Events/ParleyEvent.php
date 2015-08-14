@@ -37,5 +37,4 @@ class ParleyEvent
     {
         return $this->author;
     }
-
 }

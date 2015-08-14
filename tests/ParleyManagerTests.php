@@ -95,8 +95,6 @@ class ParleyManagerTests extends ParleyTestCase
         $multiGatherThreads       = Parley::gatherFor([$this->irina, $this->prozorovGroup])->get();
         $multiGatherUnread        = Parley::gatherFor([$this->irina, $this->prozorovGroup])->unread()->get();
 
-        //dd(Parley::gatherFor($this->irina)->unread()->get()->toArray());
-
         $this->assertEquals(3, $irinaThreads->count());
         $this->assertEquals($irinaThreadsCount, $irinaThreads->count());
         $this->assertEquals(2, $irinaOpenThreads->count());
