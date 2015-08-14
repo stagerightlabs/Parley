@@ -5,6 +5,9 @@ namespace Parley\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Parley\Events\ParleyMessageCreatedEvent;
+use Parley\Events\ParleyThreadCreatedEvent;
+use Parley\Exceptions\NonMemberObjectException;
 use Parley\Traits\ParleyHelpersTrait;
 use ReflectionClass;
 use Parley\Exceptions\InvalidMessageFormatException;
@@ -33,19 +36,27 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function withParticipants($members)
     {
-        if (! is_array($members)) {
-            $members = [$members];
-        }
-
-        $members = array_flatten($members);
+        $members = $this->ensureArrayable($members);
 
         foreach ($members as $member) {
             $this->addMember($member);
         }
 
-        $this->notifyMembers('new.thread');
+        // Send an alert to any application listeners that might be interested
+        \Event::fire(new ParleyThreadCreatedEvent($this, $this->getThreadAuthor()));
 
         return $this;
+    }
+
+    /**
+     * Convenience wrapper for withParticipants()
+     *
+     * @param $members
+     * @return mixed
+     */
+    public function withParticipant($members)
+    {
+        return $this->withParticipants($members);
     }
 
     /**
@@ -176,38 +187,57 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Associate the initial Message Object with this thread.
      *
-     * @param array $message
+     * @param array $messageData
      *
      * @return $this
      * @throws InvalidMessageFormatException
      */
-    public function initialMessage($message = array())
+    public function setInitialMessage($messageData = array())
     {
-        $this->createMessage($message);
+        // Create the first Message and add it to this thread
+        $this->createMessage($messageData);
+
+        // Add the author as a member of this Thread
+        $this->addMember($messageData['author']);
+
+        // We can assume that the author has read their own message.
+        $this->markReadForMembers($messageData['author']);
 
         // Mark the thread as "unread" for the author
-        $this->markReadForMembers($message['author']);
+        $this->markReadForMembers($messageData['author']);
     }
 
     /**
      * Add a new Message Object to this thread
      *
-     * @param $message
-     *
+     * @param $messageData
+     * @return Message
      * @throws InvalidMessageFormatException
-     * @throws NonReferableObjectException
-     * @return \Parley\Models\Message
+     * @throws NonMemberObjectException
      */
-    public function reply($message)
+    public function reply($messageData)
     {
-        $this->createMessage($message);
+        // Make sure the author is in fact a member of this thread
+        if (!array_key_exists('author', $messageData) || !$this->isMember($messageData['author'])) {
+            throw new NonMemberObjectException;
+        }
 
+        // Add this messageData to the thread
+        $this->createMessage($messageData);
+
+        // A new messageData implies that this thread is now unread for all members
         $this->markUnreadForAllMembers();
 
-        // Change the thread's 'updated_at' timestamp
+        // Except the author of the reply, of course.
+        $this->markReadForMembers($messageData['author']);
+
+        // Change the thread's 'updated_at' timestamp to be in sync with the new messageData timestamp
         $this->touch();
 
-        return $message;
+        // Send an alert to any application listeners that might be interested
+        \Event::fire(new ParleyMessageCreatedEvent($this, $this->getThreadAuthor()));
+
+        return $messageData;
     }
 
     /**
@@ -241,9 +271,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function messages()
     {
-        return Message::where('parley_thread_id', $this->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        return $this->hasMany('Parley\Models\Message','parley_thread_id')->orderBy('created_at', 'desc');
     }
 
     /**
@@ -256,9 +284,10 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function setReferenceObject($object)
     {
-        $this->confirmObjectHasId($object);
+        // Ensure that this object has a valid primary key
+        $this->confirmObjectIsReferable($object);
 
-        // Set the object referece fields
+        // Set the object reference fields
         $this->object_id = $object->id;
         $this->object_type = get_class($object);
 
@@ -290,6 +319,16 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         $this->object_type = '';
 
         return $this->save();
+    }
+
+    /**
+     * Get the authoring object for the first messageData in the thread
+     *
+     * @return mixed
+     */
+    public function getThreadAuthor()
+    {
+        return $this->originalMessage()->getAuthor();
     }
 
     /**
@@ -336,7 +375,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         return $object = \App::make($this->closed_by_type)->find($this->closed_by_id);
     }
 
-
     /**
      * Mark thread as open
      *
@@ -349,20 +387,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         $this->closed_by_type = '';
 
         return $this->save();
-    }
-
-    /**
-     * Notify Members that a Thread action has occured.
-     *
-     * @param $action
-     */
-    public function notifyMembers($action)
-    {
-        foreach ($this->members() as $member) {
-            $member->notify($action, $this);
-        }
-
-        // todo set notification flag on parley_members table
     }
 
     /**
@@ -476,11 +500,11 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Set the "notified" flag for a set of members
      *
-     * @param $member
+     * @param mixed $members
      *
      * @return bool
      */
-    public function markNotifiedForMembers($members = array())
+    public function markNotifiedForMembers($members = [])
     {
         $members = $this->ensureArrayable($members);
 
@@ -498,11 +522,11 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Remove the notified flag for the given members
      *
-     * @param $members
+     * @param mixed $members
      *
      * @return bool
      */
-    public function removeNotifiedFlagForMembers(array $members)
+    public function removeNotifiedFlagForMembers($members = [])
     {
         $members = $this->ensureArrayable($members);
 
@@ -518,38 +542,30 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     }
 
     /**
-     * Create a new message object for this thread
+     * Create a new messageData object for this thread
      *
+     * @param array $messageData
      * @return Message
      * @throws InvalidMessageFormatException
      */
-    protected function createMessage(array $message)
+    protected function createMessage(array $messageData)
     {
-        // Validate $message structure
-        foreach (['title', 'body', 'author'] as $key) {
-            if (!in_array($key, $message)) {
-                throw new InvalidMessageFormatException("Missing {$key} from message attributes");
-            }
+        // We can't proceed if there is no messageData body.
+        if (! array_key_exists('body', $messageData)) {
+            throw new InvalidMessageFormatException("Missing body from message data attributes");
         }
 
-        // Specify an author alias if it doesn't already exist
-        $messge['alias']  = array_key_exists('alias', $message) ? $message['alias'] : $message['author']->alias;
+        // Assemble the Message components and create the messageData
+        $message = Message::create([
+            'body' => e($messageData['body']),
+            'parley_thread_id' => $this->id
+        ]);
 
-        // Confirm the Author member contains a valid 'id' field
-        $this->confirmObjectHasId($message['author']);
-
-        // Assemble the Message components
-        $data['body'] = e($message['body']);
-        $data['author_alias'] = e($message['alias']);
-        $data['author_id'] = $message['author']->id;
-        $data['author_type'] = get_class($message['author']);
-        $data['parley_thread_id'] = $this->id;
+        // Set the message author and author_alias
+        $alias  = array_key_exists('alias', $messageData) ? $messageData['alias'] : $messageData['author']->alias;
+        $message->setAuthor($messageData['author'], $alias);
 
         // Create the Message Object
-        $message = Message::create($data);
-        $message->hash = \Hashids::encode($message->id);
-        $message->save();
-
         return $message;
     }
 }

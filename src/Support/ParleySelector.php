@@ -70,6 +70,25 @@ class ParleySelector
     }
 
     /**
+     * Select only threads that are "open"
+     *
+     * @return $this
+     */
+    public function open()
+    {
+        $this->type = 'open';
+
+        return $this;
+    }
+
+    public function closed()
+    {
+        $this->type = 'closed';
+
+        return $this;
+    }
+
+    /**
      * Return a count of the threads that have been selected
      *
      * @return int
@@ -110,7 +129,7 @@ class ParleySelector
      */
     public function getThreadsForMember($member)
     {
-        // Confirm this is a Parleyable object
+        // Confirm the specified member is a valid Parleyable Object
         if (! $this->confirmObjectIsParleyable($member)) {
             return new Collection();
         }

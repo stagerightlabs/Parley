@@ -31,19 +31,10 @@ class ParleyServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // Register the Vinkla/Hashids Service Provider
-        $this->app->register('Vinkla\Hashids\HashidsServiceProvider');
-
-        // Register the Parley Manager to the IOC
+        // Register the Parley Manager to the IOC Container
         $this->app['parley'] = $this->app->share(function ($app) {
             return new ParleyManager;
         });
-
-        // Load the Parley and Hashids Facade Aliases
-        $loader = AliasLoader::getInstance();
-        $loader->alias('Parley', 'Parley\Facades\Parley');
-        $loader->alias('Hashids', 'Vinkla\Hashids\Facades\Hashids');
-
     }
 
     /**

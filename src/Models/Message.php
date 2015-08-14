@@ -2,12 +2,15 @@
 
 namespace Parley\Models;
 
+use Parley\Traits\ParleyHelpersTrait;
 use ReflectionClass;
 use Parley\Exceptions\NonMemberObjectException;
 use Parley\Exceptions\NonReferableObjectException;
 
 class Message extends \Illuminate\Database\Eloquent\Model
 {
+    use ParleyHelpersTrait;
+
     /*****************************************************************************
      * Eloquent Configuration
      *****************************************************************************/
@@ -42,42 +45,26 @@ class Message extends \Illuminate\Database\Eloquent\Model
     /**
      * Set the authoring object for this message
      *
-     * @param $alias
-     * @param $member
+     * @param string|null $alias
+     * @param mixed $author
      * @return bool
      * @throws NonMemberObjectException
      * @throws NonReferableObjectException
      */
-    public function setAuthor($alias, $member)
+    public function setAuthor($author, $alias = null)
     {
-        // Confirm that this is a valid author
-        $this->isValidAuthor($member);
+        // Make sure the author has a valid primary key
+        $this->confirmObjectIsReferable($author);
+
+        // If an author alias was explicitly specified, use that value instead of the default model alias
+        $alias  = ($alias ? $alias : $author->alias);
 
         // Associate the new Author with this Message
         $this->author_alias = $alias;
-        $this->author_id = $member->id;
-        $this->author_type = get_class($member);
+        $this->author_id = $author->id;
+        $this->author_type = get_class($author);
+
         return $this->save();
     }
 
-    /**
-     * Make sure the specified author is allowable
-     *
-     * @param $author
-     *
-     * @throws NonMemberObjectException
-     * @throws NonReferableObjectException
-     */
-    protected function isValidAuthor($author)
-    {
-        // Make sure the author has a valid id property
-        if (is_null($author->id)) {
-            throw new NonReferableObjectException;
-        }
-
-        // Make sure the author is in fact a member of this thread
-        if (! $this->thread->isMember($author)) {
-            throw new NonMemberObjectException;
-        }
-    }
 }

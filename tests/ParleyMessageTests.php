@@ -4,85 +4,91 @@ use Illuminate\Database\Eloquent;
 use Illuminate\Support\Collection;
 use Parley\Models\Thread;
 use Parley\Models\Message;
-use Epiphyte\User;
 
 class ParleyMessageTests extends ParleyTestCase
 {
-
-    public function testCreateMessage()
+    public function test_creating_messages_with_explicit_alias()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = Parley::discuss([
+            'subject' => 'Happy Name Day!',
+            'body'    => 'Congratulations on your 20th name day!',
+            'alias'   => 'Baron Nikolaj Lvovich Tuzenbach',
+            'author' => $this->nikolai
+        ])->withParticipants($this->irina);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst($user1);
-        $thread->addMember($user2);
+        sleep(1);
 
-        $members = $thread->members();
+        $parley->reply([
+            'body'   => 'I am feeling so very old today.',
+            'alias'  => 'Irina Sergeyevna Prozorova',
+            'author' => $this->irina
+        ]);
 
-        $this->assertInstanceOf('Parley\Models\Thread', $thread);
-        $this->assertEquals($thread->subject, 'Test Message');
-        $this->assertEquals($members->count(), 2);
+        $initialMessage = $parley->originalMessage();
+        $replyMessage   = $parley->newestMessage();
+
+        $this->assertInstanceOf('Parley\Models\Message', $initialMessage);
+        $this->assertEquals($initialMessage->body, 'Congratulations on your 20th name day!');
+        $this->assertEquals($initialMessage->author_alias, 'Baron Nikolaj Lvovich Tuzenbach');
+        $this->assertNotEquals($initialMessage->author_alias, $this->nikolai->alias);
+
+        $this->assertInstanceOf('Parley\Models\Message', $replyMessage);
+        $this->assertEquals($replyMessage->body, 'I am feeling so very old today.');
+        $this->assertEquals($replyMessage->author_alias, 'Irina Sergeyevna Prozorova');
+        $this->assertNotEquals($replyMessage->author_alias, $this->irina->alias);
+
     }
 
-    public function testGetAndSetAuthor()
+    public function test_creating_messages_without_explicit_alias()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = Parley::discuss([
+            'subject' => 'Happy Name Day!',
+            'body'    => 'Congratulations on your 20th name day!',
+            'author' => $this->nikolai
+        ])->withParticipants($this->irina);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst($user1);
-        $thread->addMember($user2);
+        sleep(1);
 
-        $thread->reply([
-           'body' => 'This is the first message in this thread',
-           'author' => $user1,
-           'alias' => $user1->email
+        $parley->reply([
+            'body'   => 'I am feeling so very old today.',
+            'author' => $this->irina
         ]);
 
-        sleep(2);
+        $initialMessage = $parley->originalMessage();
+        $replyMessage   = $parley->newestMessage();
 
-        $thread->reply([
-            'body' => 'This is the second message in this thread',
-            'author' => $user2,
-            'alias' => $user2->email
-        ]);
+        $this->assertInstanceOf('Parley\Models\Message', $initialMessage);
+        $this->assertEquals($initialMessage->author_alias, $this->nikolai->alias);
 
-        $message = $thread->newestMessage();
+        $this->assertInstanceOf('Parley\Models\Message', $replyMessage);
+        $this->assertEquals($replyMessage->author_alias, $this->irina->alias);
 
-        $author = $message->getAuthor();
-
-        $this->assertInstanceOf('Epiphyte\User', $author);
-        $this->assertEquals('test2@test.com', $author->email);
-
-        $message->setAuthor('User 1 Alias', $user1);
-
-        $author = $message->getAuthor();
-
-        $this->assertEquals('test1@test.com', $author->email);
-        $this->assertEquals('User 1 Alias', $message->author_alias);
     }
 
-    public function testGetThreadFromMessage()
+    public function test_setting_and_retrieving_message_author()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = $this->simulate_a_conversation();
+        $message = $parley->newestMessage();
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst($user1);
-        $thread->addMember($user2);
+        $originalAuthor = $message->getAuthor();
 
-        $thread->reply([
-            'body' => 'This is the first message in this thread',
-            'author' => $user1,
-            'alias' => $user1->email
-        ]);
+        $message->setAuthor($this->prozorovGroup);
 
-        $message = $thread->newestMessage();
+        $updatedAuthor = $message->getAuthor();
 
+        $this->assertInstanceOf('Epiphyte\User', $originalAuthor);
+        $this->assertEquals('Irina Prozorovna', $originalAuthor->alias);
+        $this->assertInstanceOf('Epiphyte\Group', $updatedAuthor);
+        $this->assertEquals('The Prozorovs', $updatedAuthor->alias);
+    }
+
+    public function test_retrieve_thread_from_message()
+    {
+        $parley = $this->simulate_a_conversation();
+        $message = $parley->newestMessage();
         $thread = $message->thread;
 
         $this->assertInstanceOf('Parley\Models\Thread', $thread);
-        $this->assertEquals('Test Message', $thread->subject);
+        $this->assertEquals('Happy Name Day!', $thread->subject);
     }
 }

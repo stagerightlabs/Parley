@@ -10,34 +10,20 @@ use Parley\Facades\Parley;
 
 class ParleyManagerTests extends ParleyTestCase
 {
-    private $nikolai;
-    private $irina;
-    private $prozorovGroup;
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        // Establish the players in our dialogue
-        $this->irina = User::create(['email' => 'irina@prozorov.net', 'first_name' => 'Irina', 'last_name' => 'Prozorovna']);
-        $this->nikolai = User::create(['email' => 'nikolai@tuzenbach.com', 'first_name' => 'Nikolai', 'last_name' => 'Tuzenbach']);
-        $this->prozorovGroup = Group::create(['name' => 'Prozorovs']);
-    }
-
     public function test_parley_discussion()
     {
         $parley = Parley::discuss([
-            'title'  => 'Happy Name Day!',
+            'subject'  => 'Happy Name Day!',
             'body'   => "Congratulations on your 20th name day!",
-            'alias'  => $this->irina->alias,
-            'author' => $this->irina
-        ])->with($this->nikolai);
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ])->withParticipant($this->irina);
 
         sleep(2);
 
         $parley->reply([
-            'body'   => "Yes, I see that there is a mistake. Please cancel my order.",
-            'author' => $this->nikolai
+            'body'   => "I am feeling so very old today.",
+            'author' => $this->irina
         ]);
 
         $members = $parley->members();
@@ -51,9 +37,9 @@ class ParleyManagerTests extends ParleyTestCase
         $this->assertInstanceOf('Illuminate\Support\Collection', $members);
         $this->assertEquals(2, $members->count());
 
-        $this->assertEquals('There was a problem with your order', $originalMessage->body);
+        $this->assertEquals('Congratulations on your 20th name day!', $originalMessage->body);
         $this->assertInstanceOf('Parley\Models\Message', $newestMessage);
-        $this->assertEquals('Congratulations on your 20th name day!', $newestMessage->body);
+        $this->assertEquals('I am feeling so very old today.', $newestMessage->body);
     }
 
     public function test_parley_discussion_with_reference_object()
@@ -61,32 +47,43 @@ class ParleyManagerTests extends ParleyTestCase
         $widgetObject = Widget::create(['name' => 'Gift']);
 
         $parley = Parley::discuss([
-                'title'  => 'Happy Name Day!',
+                'subject'  => 'Happy Name Day!',
                 'body'   => "Congratulations on your 20th name day!",
                 'alias'  => $this->irina->alias,
                 'author' => $this->irina
-            ], $widgetObject)->with($this->nikolai);
+            ], $widgetObject)->withParticipants($this->nikolai);
 
         $this->assertInstanceOf('Parley\Models\Thread', $parley);
         $this->assertInstanceOf('Epiphyte\Widget', $parley->getReferenceObject());
         $this->assertEquals($parley->subject, 'Happy Name Day!');
     }
 
-    public function test_retrieving_member_threads()
+    public function test_gathering_member_threads()
     {
-        $this->simulate_a_conversation("Happy Name Day!");
-        $parley2 = $this->simulate_a_conversation("Regiment Newsletter");
-        $parley2->closedByMember($this->irina);
-        $parley3 = $this->simulate_a_conversation("Request from Natasha");
-        $parley3->delete();
-        $parley4 = Parley::discuss([
-            'title'  => 'RSVP',
-            'body'   => "Thank you for the invitation - I will be there.",
+        // Parley #1
+        $parley1 = $this->simulate_a_conversation("Happy Name Day!");
+        $parley1->reply([
+            'body'   => "Nonsense - you are a beautiful young woman",
             'author' => $this->nikolai
-        ])->with($this->prozorovGroup);
-        $parley4->markReadForMembers($this->nikolai);
+        ]);
+        // Parley #2
+        $parley2 = $this->simulate_a_conversation("My thoughts on our future society");
+        $parley2->markReadForMembers($this->irina);
+        // Parley #3
+        $parley3 = $this->simulate_a_conversation("Regiment Newsletter");
+        $parley3->closedBy($this->irina);
+        // Parley #4
+        $parley4 = $this->simulate_a_conversation("Pay no attention to Solyony");
+        $parley4->delete();
+        // Parley #5
+        Parley::discuss([
+            'subject'  => 'You are Invited',
+            'body'   => "Please join us for dinner this evening at our residence.",
+            'author' => $this->prozorovGroup
+        ])->withParticipants($this->nikolai);
 
         $irinaThreads             = Parley::gatherFor($this->irina)->get();
+        $irinaThreadsCount        = Parley::gatherFor($this->irina)->count();
         $irinaOpenThreads         = Parley::gatherFor($this->irina)->open()->get();
         $irinaClosedThreads       = Parley::gatherFor($this->irina)->closed()->get();
         $irinaThreadsWithTrashed  = Parley::gatherFor($this->irina)->withTrashed()->get();
@@ -95,50 +92,39 @@ class ParleyManagerTests extends ParleyTestCase
         $irinaReadThreadCount     = Parley::gatherFor($this->irina)->read()->count();
         $nikolaiUnreadThreadCount = Parley::gatherFor($this->nikolai)->unread()->count();
         $nikolaiReadThreadCount   = Parley::gatherFor($this->nikolai)->read()->count();
-        $multiGatherThreads       = Parley::gatherFor([$this->irina, $group])->get();
+        $multiGatherThreads       = Parley::gatherFor([$this->irina, $this->prozorovGroup])->get();
+        $multiGatherUnread        = Parley::gatherFor([$this->irina, $this->prozorovGroup])->unread()->get();
 
-        $this->assertEquals(2, $irinaThreads->count());
-        $this->assertEquals(1, $irinaOpenThreads->count());
+        //dd(Parley::gatherFor($this->irina)->unread()->get()->toArray());
+
+        $this->assertEquals(3, $irinaThreads->count());
+        $this->assertEquals($irinaThreadsCount, $irinaThreads->count());
+        $this->assertEquals(2, $irinaOpenThreads->count());
         $this->assertEquals(1, $irinaClosedThreads->count());
-        $this->assertEquals(3, $irinaThreadsWithTrashed->count());
+        $this->assertEquals(4, $irinaThreadsWithTrashed->count());
         $this->assertEquals(1, $irinaThreadsOnlyTrashed->count());
-        $this->assertEquals(2, $irinaAll);
-        $this->assertEquals(1, $irinaUnread);
-        $this->assertEquals(1, $irinaRead);
-        $this->assertEquals(2, $nikolaiUnread);
-        $this->assertEquals(0, $nikolaiRead);
-        $this->assertEquals(3, $multiGatherThreads->count());
-        $this->assertInstanceOf('Parley\Support\Collection', $multiGatherThreads);
-        $this->assertEquals(3, $multiGatherThreads->unread());
+        $this->assertEquals(1, $irinaUnreadThreadCount);
+        $this->assertEquals(2, $irinaReadThreadCount);
+        $this->assertEquals(3, $nikolaiUnreadThreadCount);
+        $this->assertEquals(1, $nikolaiReadThreadCount);
+        $this->assertEquals(4, $multiGatherThreads->count());
+        $this->assertEquals(1, $multiGatherUnread->count());
+        $this->assertInstanceOf('Illuminate\Support\Collection', $multiGatherThreads);
+        $this->assertInstanceOf('Illuminate\Support\Collection', $irinaThreads);
     }
 
+    /**
+     * @expectedException \Parley\Exceptions\NonParleyableMemberException
+     */
     public function test_gathering_threads_for_invalid_member()
     {
+        $this->simulate_a_conversation("Happy Name Day!");
+
         $group = null;
 
         $parleys = Parley::gatherFor($group)->get();
 
         $this->assertInstanceOf('Parley\Support\Collection', $parleys);
         $this->assertEquals(0, $parleys->count());
-    }
-
-    private function simulate_a_conversation($title)
-    {
-        $parley = Parley::discuss([
-            'title'  => $title,
-            'body'   => "Congratulations on your 20th name day!",
-            'alias'  => $this->irina->alias,
-            'author' => $this->irina
-        ])->with($this->nikolai);
-
-        sleep(2);
-
-        $parley->reply([
-            'body'   => "Yes, I see that there is a mistake. Please cancel my order.",
-            'alias'  => $this->nikolai->first_name . ' ' . $this->nikolai->last_name,
-            'author' => $this->nikolai
-        ]);
-
-        return $parley;
     }
 }

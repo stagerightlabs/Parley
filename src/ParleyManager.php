@@ -3,6 +3,7 @@
 namespace Parley;
 
 use Parley\Exceptions\InvalidMessageFormatException;
+use Parley\Exceptions\NonParleyableMemberException;
 use Parley\Exceptions\NonReferableObjectException;
 use Parley\Support\ParleySelector;
 use Parley\Traits\ParleyHelpersTrait;
@@ -15,21 +16,29 @@ class ParleyManager
     use ParleyHelpersTrait;
 
     /**
-     * Create a new message thread, with an optional object reference
+     * Create a new messageData thread, with an optional object reference
      *
-     * @param array $message
+     * @param array $messageData
      * @param  null $object
      * @return static
      * @throws InvalidMessageFormatException
-     * @throws NonReferableObjectException
+     * @throws NonParleyableMemberException
      */
-    public function discuss(array $message, $object = null)
+    public function discuss(array $messageData, $object = null)
     {
-        // Create a new Parley Thread
-        $thread = Thread::create(['subject' => e($subject)]);
-        $thread->hash = \Hashids::encode($thread->id);
-        $thread->initialMessage($message);
-        $thread->save();
+        // Make sure we have a subject parameter
+        if (! array_key_exists('subject', $messageData)) {
+            throw new InvalidMessageFormatException("Missing subject from message data attributes");
+        }
+
+        // Make sure we have a valid author parameter
+        if (! array_key_exists('author', $messageData) || !$this->confirmObjectIsParleyable($messageData['author'], 'silent')) {
+            throw new NonParleyableMemberException;
+        }
+
+        // Create a new Parley Thread with its first Message
+        $thread = Thread::create(['subject' => e($messageData['subject'])]);
+        $thread->setInitialMessage($messageData);
 
         // Set the reference object, if one has been assigned
         if ($object) {
@@ -61,10 +70,6 @@ class ParleyManager
      */
     public function getThread($id)
     {
-        if (is_string($id)) {
-            $id = \Hashids::decode($id)[0];
-        }
-
         return Thread::find($id);
     }
 }

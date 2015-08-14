@@ -2,11 +2,8 @@
 
 namespace Parley\Traits;
 
-use Parley\Exceptions\NonMemberObjectException;
 use Parley\Exceptions\NonParleyableMemberException;
 use Parley\Exceptions\NonReferableObjectException;
-use ReflectionClass;
-
 
 trait ParleyHelpersTrait
 {
@@ -14,20 +11,15 @@ trait ParleyHelpersTrait
      * Helper Function: Determine if an member has the 'Parley\Traits\Parleyable' trait
      *
      * @param $object
-     *
+     * @param bool $silent
      * @return bool
      * @throws NonParleyableMemberException
      */
     protected function confirmObjectIsParleyable($object, $silent = false)
     {
-        if (is_object($object)) {
-            // Reflect on the Object
-            $reflector = new ReflectionClass($object);
-
-            // Does the member have the Parleyable trait? If not, thrown an exception.
-            if (in_array('Parley\Traits\ParleyableTrait', $reflector->getTraitNames())) {
-                return true;
-            }
+        // Does the object implement the ParleyableInterface? If not, thrown an exception.
+        if (is_object($object) && in_array('Parley\Contracts\ParleyableInterface', class_implements($object))) {
+            return true;
         }
 
         if (! $silent) {
@@ -37,26 +29,29 @@ trait ParleyHelpersTrait
         return null;
     }
 
-
     /**
-     * Confirm that an object has a valid Id field
+     * For now, To be referable an object must have a primary key that is an integer
      *
      * @param $object
-     *
-     * @return bool
+     * @param bool|false $silent
+     * @return bool|null
      * @throws NonReferableObjectException
      */
-    protected function confirmObjectHasId($object)
+    protected function confirmObjectIsReferable($object, $silent = false)
     {
-        if (is_null($object->id)) {
+        if (is_int($object->getKey())) {
+            return true;
+        }
+
+        if (! $silent) {
             throw new NonReferableObjectException;
         }
 
-        return true;
+        return null;
     }
 
     /**
-     * Convert an unknown entity, or entities, into a flattened array.
+     * Convert an unknown entity (or entities) into a flattened array.
      *
      * @param $group
      * @return array

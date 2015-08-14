@@ -9,13 +9,16 @@ use Epiphyte\Widget;
 
 class ParleyThreadTests extends ParleyTestCase
 {
+
+
+
     public function testAddMember()
     {
         $user1 = User::create(['email' => 'test1@test.com']);
         $user2 = User::create(['email' => 'test2@test.com']);
 
         $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst($user1);
+        $thread->withParticipants($user1);
         $thread->addMember($user2);
 
         $members = $thread->members();
@@ -31,7 +34,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user2 = User::create(['email' => 'test2@test.com']);
 
         $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst([$user1, $user2]);
+        $thread->withParticipants([$user1, $user2]);
 
         $members = $thread->members();
 
@@ -55,7 +58,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user2 = User::create(['email' => 'test2@test.com']);
 
         $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst([$user1, $user2]);
+        $thread->withParticipants([$user1, $user2]);
 
         $thread->removeMember($user2);
 
@@ -83,7 +86,7 @@ class ParleyThreadTests extends ParleyTestCase
         $widget = Widget::create(['name' => 'Widget1']);
 
         $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst([$user1, $user2]);
+        $thread->withParticipants([$user1, $user2]);
 
         $thread->setReferenceObject($widget);
 
@@ -110,7 +113,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user2 = User::create(['email' => 'test2@test.com']);
 
         $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst([$user1, $user2]);
+        $thread->withParticipants([$user1, $user2]);
 
         $thread->close($user1);
 
@@ -124,7 +127,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user2 = User::create(['email' => 'test2@test.com']);
 
         $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst([$user1, $user2]);
+        $thread->withParticipants([$user1, $user2]);
 
         $thread->close($user1);
 
@@ -139,7 +142,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
         $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
 
-        $thread = Thread::create(['subject' => 'Test Message'])->amongst([$user1, $user2])->message([
+        $thread = Thread::create(['subject' => 'Test Message'])->withParticipants([$user1, $user2])->message([
             'body'   => "There was a problem with your order",
             'alias'  => $user1->first_name . ' ' . $user1->last_name,
             'author' => $user1
@@ -166,7 +169,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
         $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
 
-        $thread = Thread::create(['subject' => 'Test Message'])->amongst([$user1, $user2])->message([
+        $thread = Thread::create(['subject' => 'Test Message'])->withParticipants([$user1, $user2])->message([
             'body'   => "There was a problem with your order",
             'alias'  => $user1->first_name . ' ' . $user1->last_name,
             'author' => $user1
@@ -193,7 +196,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
         $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
 
-        $thread = Thread::create(['subject' => 'Test Message'])->amongst([$user1, $user2])->message([
+        $thread = Thread::create(['subject' => 'Test Message'])->withParticipants([$user1, $user2])->message([
             'body'   => "There was a problem with your order",
             'alias'  => $user1->first_name . ' ' . $user1->last_name,
             'author' => $user1
@@ -216,7 +219,7 @@ class ParleyThreadTests extends ParleyTestCase
         $user2 = User::create(['email' => 'test2@test.com']);
 
         $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->amongst($user1);
+        $thread->withParticipants($user1);
         $thread->addMember($user2);
 
         $thread->reply([
