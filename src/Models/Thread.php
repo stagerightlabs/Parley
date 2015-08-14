@@ -5,8 +5,8 @@ namespace Parley\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
-use Parley\Events\ParleyMessageCreatedEvent;
-use Parley\Events\ParleyThreadCreatedEvent;
+use Parley\Events\ParleyMessageAdded;
+use Parley\Events\ParleyThreadCreated;
 use Parley\Exceptions\NonMemberObjectException;
 use Parley\Traits\ParleyHelpersTrait;
 use ReflectionClass;
@@ -43,7 +43,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         }
 
         // Send an alert to any application listeners that might be interested
-        \Event::fire(new ParleyThreadCreatedEvent($this, $this->getThreadAuthor()));
+        \Event::fire(new ParleyThreadCreated($this, $this->getThreadAuthor()));
 
         return $this;
     }
@@ -235,7 +235,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         $this->touch();
 
         // Send an alert to any application listeners that might be interested
-        \Event::fire(new ParleyMessageCreatedEvent($this, $this->getThreadAuthor()));
+        \Event::fire(new ParleyMessageAdded($this, $this->getThreadAuthor()));
 
         return $messageData;
     }
