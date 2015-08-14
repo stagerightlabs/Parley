@@ -31,10 +31,13 @@ class ParleyManager
             throw new InvalidMessageFormatException("Missing subject from message data attributes");
         }
 
-        // Make sure we have a valid author parameter
-        if (! array_key_exists('author', $messageData) || !$this->confirmObjectIsParleyable($messageData['author'], 'silent')) {
-            throw new NonParleyableMemberException;
+        // Make sure we have an author parameter
+        if (! array_key_exists('author', $messageData)) {
+            throw new InvalidMessageFormatException('You must specify an author for this Parley Thread');
         }
+
+        // Make sure the author object implements the ParleyableInterface
+        $this->confirmObjectIsParleyable($messageData['author']);
 
         // Create a new Parley Thread with its first Message
         $thread = Thread::create(['subject' => e($messageData['subject'])]);

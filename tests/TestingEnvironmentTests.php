@@ -1,7 +1,7 @@
 <?php
 
+use Chekhov\Widget;
 use Illuminate\Database\Eloquent;
-use Parley\Exceptions\NonParleyableMemberException;
 use Parley\Models\Thread;
 
 class TestingEnvironmentTests extends ParleyTestCase
@@ -21,7 +21,7 @@ class TestingEnvironmentTests extends ParleyTestCase
 
     public function test_object_instantiation()
     {
-        $object = new NonParleyableMemberException();
-        $this->assertInstanceOf('Parley\Exceptions\NonParleyableMemberException', $object);
+        $widget = Widget::create(['name' => 'Test Widget']);
+        $this->assertInstanceOf('Chekhov\Widget', $widget);
     }
 }

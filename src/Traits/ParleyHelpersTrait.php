@@ -23,7 +23,8 @@ trait ParleyHelpersTrait
         }
 
         if (! $silent) {
-            throw new NonParleyableMemberException;
+            $objectClass = get_class($object);
+            throw new NonParleyableMemberException("The {$objectClass} class does not implement the ParleyableInterface");
         }
 
         return null;
@@ -62,6 +63,6 @@ trait ParleyHelpersTrait
             $group = [$group];
         }
 
-        return array_flatten($group);
+        return $group;
     }
 }

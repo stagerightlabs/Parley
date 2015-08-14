@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Database\Eloquent;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Parley\Models\Thread;
 use Parley\Exceptions\NonParleyableMemberException;
 use Chekhov\User;
@@ -42,6 +42,41 @@ class ParleyThreadTests extends ParleyTestCase
 
         $this->assertEquals($members->count(), 3);
     }
+
+    public function test_adding_a_collection_of_members_to_a_thread()
+    {
+        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+
+        $users = User::get();
+
+        $parley = Parley::discuss([
+            'subject'  => 'You are Invited',
+            'body'   => "Please join us for dinner this evening at our residence.",
+            'author' => $this->prozorovGroup
+        ])->withParticipants($users);
+
+        $members = $parley->getMembers();
+
+        $this->assertEquals($members->count(), 3);
+    }
+
+    public function test_adding_an_array_of_members_to_a_thread()
+    {
+        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+
+        $users = User::get()->all();
+
+        $parley = Parley::discuss([
+            'subject'  => 'You are Invited',
+            'body'   => "Please join us for dinner this evening at our residence.",
+            'author' => $this->prozorovGroup
+        ])->withParticipants($users);
+
+        $members = $parley->getMembers();
+
+        $this->assertEquals($members->count(), 3);
+    }
+
 
     /**
      * @expectedException Parley\Exceptions\NonParleyableMemberException

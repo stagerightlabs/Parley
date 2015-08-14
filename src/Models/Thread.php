@@ -9,7 +9,6 @@ use Parley\Events\ParleyMessageAdded;
 use Parley\Events\ParleyThreadCreated;
 use Parley\Exceptions\NonMemberObjectException;
 use Parley\Traits\ParleyHelpersTrait;
-use ReflectionClass;
 use Parley\Exceptions\InvalidMessageFormatException;
 use Parley\Exceptions\NonParleyableMemberException;
 use Parley\Exceptions\NonReferableObjectException;
@@ -68,6 +67,24 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function addMember($member)
     {
+        // If we have been passed an Eloquent collection, add each member recursively
+        if ($member instanceof Collection) {
+            foreach ($member->all() as $m) {
+                $this->addMember($m);
+            }
+
+            return true;
+        }
+
+        // Or perhaps we have been given an array...
+        if (is_array($member)) {
+            foreach ($member as $m) {
+                $this->addMember($m);
+            }
+
+            return true;
+        }
+
         // Is this Member parleyable?
         $this->confirmObjectIsParleyable($member);
 
