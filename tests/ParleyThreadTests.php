@@ -9,247 +9,247 @@ use Chekhov\Widget;
 
 class ParleyThreadTests extends ParleyTestCase
 {
-
-
-
-    public function testAddMember()
+    public function test_creating_a_thread()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = $this->simulate_a_conversation('Happy Name Day!');
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->withParticipants($user1);
-        $thread->addMember($user2);
-
-        $members = $thread->members();
-
-        $this->assertInstanceOf('Parley\Models\Thread', $thread);
-        $this->assertEquals($thread->subject, 'Test Message');
-        $this->assertEquals($members->count(), 2);
+        $this->assertInstanceOf('Parley\Models\Thread', $parley);
+        $this->assertEquals($parley->subject, 'Happy Name Day!');
     }
 
-    public function testAmongstMembers()
+    public function test_adding_member_to_thread()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = $this->simulate_a_conversation('Happy Name Day!');
+        $parley->addMember($this->prozorovGroup);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->withParticipants([$user1, $user2]);
+        $members = $parley->getMembers();
 
-        $members = $thread->members();
+        $this->assertEquals($members->count(), 3);
+    }
 
-        $this->assertEquals($members->count(), 2);
+    public function test_adding_members_via_with_participants_method()
+    {
+        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+
+        $parley = Parley::discuss([
+            'subject'  => 'Happy Name Day!',
+            'body'   => 'Congratulations on your 20th name day!',
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ])->withParticipants([$this->irina, $this->prozorovGroup]);
+
+        $members = $parley->getMembers();
+
+        $this->assertEquals($members->count(), 3);
     }
 
     /**
      * @expectedException Parley\Exceptions\NonParleyableMemberException
      */
-    public function testWithInvalidMember()
+    public function test_adding_nonparleyable_object_as_member()
     {
-        $widget = Widget::create(['name' => 'Widget1']);
+        $widget = Widget::create(['name' => 'Gift']);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->addMember($widget);
+        Parley::discuss([
+            'subject'  => 'Happy Name Day!',
+            'body'   => 'Congratulations on your 20th name day!',
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ])->withParticipants($widget);
     }
 
-    public function testRemoveMember()
+    public function test_removing_member_from_thread()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = Parley::discuss([
+            'subject'  => 'Happy Name Day!',
+            'body'   => 'Congratulations on your 20th name day!',
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ])->withParticipants([$this->irina, $this->prozorovGroup]);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->withParticipants([$user1, $user2]);
+        $parley->removeMember($this->prozorovGroup);
 
-        $thread->removeMember($user2);
+        $members = $parley->getMembers();
 
-        $members = $thread->members();
-
-        $this->assertEquals($members->count(), 1);
+        $this->assertEquals($members->count(), 2);
     }
 
-    public function testIsMember()
+    public function test_validating_thread_membership()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = $this->simulate_a_conversation('Happy Name Day!');
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->addMember($user1);
-
-        $this->assertTrue($thread->isMember($user1));
-        $this->assertFalse($thread->isMember($user2));
+        $this->assertTrue($parley->isMember($this->irina));
+        $this->assertFalse($parley->isMember($this->prozorovGroup));
     }
 
-    public function testReferenceObjectHandling()
+    public function test_adding_and_removing_reference_object()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
-        $widget = Widget::create(['name' => 'Widget1']);
+        $pencils = Widget::create(['name' => 'Pencils']);
+        $penknife = Widget::create(['name' => 'Penknife']);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->withParticipants([$user1, $user2]);
+        $parley = Parley::discuss([
+            'subject'  => 'Happy Name Day!',
+            'body'   => 'Congratulations on your 20th name day!',
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ], $pencils)->withParticipants([$this->irina, $this->prozorovGroup]);
 
-        $thread->setReferenceObject($widget);
+        $originalReferenceObject = $parley->getReferenceObject();
 
-        $this->assertInstanceOf('Checkhov\Widget', $thread->getReferenceObject());
+        $parley->clearReferenceObject();
+        $removedReferenceObject = $parley->getReferenceObject();
 
-        $thread->clearReferenceObject();
+        $parley->setReferenceObject($penknife);
+        $newReferenceObject = $parley->getReferenceObject();
 
-        $this->assertNull($thread->getReferenceObject());
+        $this->assertInstanceOf('Chekhov\Widget', $originalReferenceObject);
+        $this->assertEquals('Pencils', $originalReferenceObject->name);
+        $this->assertNull($removedReferenceObject);
+        $this->assertInstanceOf('Chekhov\Widget', $newReferenceObject);
+        $this->assertEquals('Penknife', $newReferenceObject->name);
     }
 
     /**
      * @expectedException Parley\Exceptions\NonReferableObjectException
      */
-    public function testNonReferableObjectException()
+    public function test_adding_object_without_id_as_reference_object()
     {
-        $thread = Thread::create(['subject' => 'Test Message']);
+        $widget = new Widget();
 
-        $thread->setReferenceObject(new Widget);
+        $parley = Parley::discuss([
+            'subject'  => 'Happy Name Day!',
+            'body'   => 'Congratulations on your 20th name day!',
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ], $widget)->withParticipants($this->irina);
     }
 
-    public function testThreadClosing()
+    public function test_opening_and_closing_a_thread()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = Parley::discuss([
+            'subject'  => 'Happy Name Day!',
+            'body'   => 'Congratulations on your 20th name day!',
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ])->withParticipants([$this->irina, $this->prozorovGroup]);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->withParticipants([$user1, $user2]);
+        $parley->closedBy($this->irina);
+        $shouldBeClosed = $parley->isClosed();
 
-        $thread->close($user1);
+        $parley->reopen();
+        $shouldBeOpen = $parley->isClosed();
 
-        $this->assertEquals($thread->isClosed(), true);
-        $this->assertInstanceOf('Chekhov\User', $thread->getCloser());
+        $this->assertTrue($shouldBeClosed);
+        $this->assertFalse($shouldBeOpen);
     }
 
-    public function testOpenAClosedTest()
+    public function test_retrieving_member_who_closed_a_thread()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = Parley::discuss([
+            'subject'  => 'Happy Name Day!',
+            'body'   => 'Congratulations on your 20th name day!',
+            'alias'  => $this->nikolai->alias,
+            'author' => $this->nikolai
+        ])->withParticipants([$this->irina, $this->prozorovGroup]);
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->withParticipants([$user1, $user2]);
+        $parley->closedBy($this->irina);
+        $closer = $parley->getCloser();
 
-        $thread->close($user1);
-
-        $thread->open();
-
-        $this->assertEquals($thread->isClosed(), false);
-        $this->assertNull($thread->getCloser());
+        $this->assertTrue($parley->isClosed());
+        $this->assertInstanceOf('Chekhov\User', $closer);
+        $this->assertEquals('Irina Prozorovna', $closer->alias);
     }
 
-    public function testRetrieveNewestMessage()
+    public function test_retrieving_the_newest_message_in_a_thread()
     {
-        $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
-        $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
-
-        $thread = Thread::create(['subject' => 'Test Message'])->withParticipants([$user1, $user2])->message([
-            'body'   => "There was a problem with your order",
-            'alias'  => $user1->first_name . ' ' . $user1->last_name,
-            'author' => $user1
+        $parley = $this->simulate_a_conversation();
+        sleep(1);
+        $parley->reply([
+            'body'   => "Nonsense - you should be celebrating!",
+            'author' => $this->nikolai
         ]);
 
-        sleep(3);
-
-        // Simulate a reply message
-        $thread->reply([
-            'body' => "Yes, I see that there is a mistake. Please cancel my order.",
-            'alias' => $user2->first_name . ' ' . $user2->last_name,
-            'author' => $user2
-        ]);
-
-        // This is the code we are testing
-        $message = $thread->newestMessage();
+        $message = $parley->newestMessage();
 
         $this->assertInstanceOf('Parley\Models\Message', $message);
-        $this->assertEquals("Yes, I see that there is a mistake. Please cancel my order.", $message->body);
+        $this->assertEquals("Nonsense - you should be celebrating!", $message->body);
     }
 
-    public function testRetrieveOriginalMessage()
+    public function test_retrieving_the_original_message_in_a_thread()
     {
-        $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
-        $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
-
-        $thread = Thread::create(['subject' => 'Test Message'])->withParticipants([$user1, $user2])->message([
-            'body'   => "There was a problem with your order",
-            'alias'  => $user1->first_name . ' ' . $user1->last_name,
-            'author' => $user1
+        $parley = $this->simulate_a_conversation();
+        sleep(1);
+        $parley->reply([
+            'body'   => "Nonsense - you should be celebrating!",
+            'author' => $this->nikolai
         ]);
 
-        sleep(3);
-
-        // Simulate a reply message
-        $thread->reply([
-            'body' => "Oh dear - what happened?",
-            'alias' => $user2->first_name . ' ' . $user2->last_name,
-            'author' => $user2
-        ]);
-
-        // This si the code we are testing.
-        $message = $thread->originalMessage();
+        $message = $parley->originalMessage();
 
         $this->assertInstanceOf('Parley\Models\Message', $message);
-        $this->assertEquals('There was a problem with your order', $message->body);
+        $this->assertEquals("Congratulations on your 20th name day!", $message->body);
     }
 
-    public function testRetrieveAllMessages()
+    public function test_retrieving_all_thread_messages()
     {
-        $user1 = User::create(['email' => 'test1@test.com', 'first_name' => 'Test', 'last_name' => 'User']);
-        $user2 = User::create(['email' => 'test2@test.com', 'first_name' => 'Another', 'last_name' => 'User']);
-
-        $thread = Thread::create(['subject' => 'Test Message'])->withParticipants([$user1, $user2])->message([
-            'body'   => "There was a problem with your order",
-            'alias'  => $user1->first_name . ' ' . $user1->last_name,
-            'author' => $user1
+        $parley = $this->simulate_a_conversation();
+        sleep(1);
+        $parley->reply([
+            'body'   => "Nonsense - you should be celebrating!",
+            'author' => $this->nikolai
         ]);
 
-        $thread->reply([
-            'body'   => "Yes, I see that there is a mistake. Please cancel my order.",
-            'alias'  => $user2->first_name . ' ' . $user2->last_name,
-            'author' => $user2
-        ]);
+        $messages = $parley->messages;
 
-        $messages = $thread->messages();
-
-        $this->assertEquals(2, $messages->count());
+        $this->assertInstanceOf('Illuminate\Support\Collection', $messages);
+        $this->assertEquals(3, $messages->count());
     }
 
-    public function testMarkThreadReadAndUnread()
+    public function test_marking_read_and_unread_for_individual_members()
     {
-        $user1 = User::create(['email' => 'test1@test.com']);
-        $user2 = User::create(['email' => 'test2@test.com']);
+        $parley = $this->simulate_a_conversation();
 
-        $thread = Thread::create(['subject' => 'Test Message']);
-        $thread->withParticipants($user1);
-        $thread->addMember($user2);
+        $irinaHasReadA = $parley->hasBeenReadByMember($this->irina);  // Should be true
+        $nikolaiHasReadA = $parley->hasBeenReadByMember($this->nikolai); // Should be false
 
-        $thread->reply([
-            'body' => 'This is the first message in this thread',
-            'author' => $user1,
-            'alias' => $user1->email
+        $parley->reply([
+            'body'   => "Nonsense - you should be celebrating!",
+            'author' => $this->nikolai
         ]);
 
-        $this->assertFalse($thread->memberHasRead($user1));
+        $irinaHasReadB = $parley->hasBeenReadByMember($this->irina);  // Should be false
+        $nikolaiHasReadB = $parley->hasBeenReadByMember($this->nikolai); // Should be true
 
-        $thread->markReadForMembers($user1);
+        $parley->markUnreadForMembers($this->nikolai);
+        $nikolaiHasReadC = $parley->hasBeenReadByMember($this->nikolai); // Should be false
 
-        $this->assertTrue($thread->memberHasRead($user1));
+        $parley->markReadForMembers($this->irina);
+        $irinaHasReadC =  $parley->hasBeenReadByMember($this->irina);  // Should be true
 
-        $thread->markUnreadForMember($user1);
-
-        $this->assertFalse($thread->memberHasRead($user1));
-
-        $thread->markReadForMembers($user1);
-
-        $this->assertTrue($thread->memberHasRead($user1));
-
-        $thread->reply([
-            'body' => 'This is the second message in the thread.',
-            'author' => $user2,
-            'alias' => $user2->email
-        ]);
-
-        $this->assertFalse($thread->memberHasRead($user1));
+        $this->assertTrue($irinaHasReadA);
+        $this->assertFalse($nikolaiHasReadA);
+        $this->assertFalse($irinaHasReadB);
+        $this->assertTrue($nikolaiHasReadB);
+        $this->assertTrue($irinaHasReadC);
+        $this->assertFalse($nikolaiHasReadC);
     }
 
-    // todo add test for $thread->members and $thread->members($except)
+    public function test_retrieving_all_thread_members()
+    {
+        $parley = $this->simulate_a_conversation();
+        $members = $parley->getMembers();
+
+        $this->assertInstanceOf('Illuminate\Support\Collection', $members);
+        $this->assertEquals(2, $members->count());
+    }
+
+    public function test_retrieving_filtered_thread_members()
+    {
+        $parley = $this->simulate_a_conversation();
+        $members = $parley->getMembers(['except' => $this->nikolai]);
+
+        $this->assertInstanceOf('Illuminate\Support\Collection', $members);
+        $this->assertEquals(1, $members->count());
+    }
+
 }
