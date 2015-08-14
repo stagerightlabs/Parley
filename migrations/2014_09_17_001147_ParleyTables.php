@@ -31,9 +31,9 @@ class ParleyTables extends Migration {
         Schema::create('parley_messages', function($table){
             $table->increments('id');
             $table->text('body');
-            $table->string('author_alias');
-            $table->integer('author_id');
-            $table->string('author_type');
+            $table->string('author_alias')->nullable();
+            $table->integer('author_id')->nullable();
+            $table->string('author_type')->nullable();
             $table->integer('parley_thread_id');
             $table->timestamp('created_at');
             $table->timestamp('updated_at');
