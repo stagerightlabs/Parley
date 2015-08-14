@@ -21,7 +21,10 @@ class ParleyServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Nothing to see here...
+        // Set up Migration Publishing
+        $this->publishes([
+            __DIR__.'/../migrations/' => database_path('migrations')
+        ], 'migrations');
     }
 
     /**
