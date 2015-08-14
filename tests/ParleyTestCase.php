@@ -1,7 +1,7 @@
 <?php
 
-use Epiphyte\Group;
-use Epiphyte\User;
+use Chekhov\Group;
+use Chekhov\User;
 
 class ParleyTestCase extends \Orchestra\Testbench\TestCase
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Epiphyte;
+namespace Chekhov;
 
 use Parley\Contracts\ParleyableInterface;
 

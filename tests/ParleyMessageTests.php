@@ -76,9 +76,9 @@ class ParleyMessageTests extends ParleyTestCase
 
         $updatedAuthor = $message->getAuthor();
 
-        $this->assertInstanceOf('Epiphyte\User', $originalAuthor);
+        $this->assertInstanceOf('Chekhov\User', $originalAuthor);
         $this->assertEquals('Irina Prozorovna', $originalAuthor->alias);
-        $this->assertInstanceOf('Epiphyte\Group', $updatedAuthor);
+        $this->assertInstanceOf('Chekhov\Group', $updatedAuthor);
         $this->assertEquals('The Prozorovs', $updatedAuthor->alias);
     }
 

@@ -3,9 +3,9 @@
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent;
 use Illuminate\Database\Eloquent\Collection;
-use Epiphyte\Group;
-use Epiphyte\User;
-use Epiphyte\Widget;
+use Chekhov\Group;
+use Chekhov\User;
+use Chekhov\Widget;
 use Parley\Facades\Parley;
 
 class ParleyManagerTests extends ParleyTestCase
@@ -54,7 +54,7 @@ class ParleyManagerTests extends ParleyTestCase
             ], $widgetObject)->withParticipants($this->nikolai);
 
         $this->assertInstanceOf('Parley\Models\Thread', $parley);
-        $this->assertInstanceOf('Epiphyte\Widget', $parley->getReferenceObject());
+        $this->assertInstanceOf('Chekhov\Widget', $parley->getReferenceObject());
         $this->assertEquals($parley->subject, 'Happy Name Day!');
     }
 

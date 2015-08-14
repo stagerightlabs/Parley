@@ -4,8 +4,8 @@ use Illuminate\Database\Eloquent;
 use Illuminate\Support\Collection;
 use Parley\Models\Thread;
 use Parley\Exceptions\NonParleyableMemberException;
-use Epiphyte\User;
-use Epiphyte\Widget;
+use Chekhov\User;
+use Chekhov\Widget;
 
 class ParleyThreadTests extends ParleyTestCase
 {
@@ -90,7 +90,7 @@ class ParleyThreadTests extends ParleyTestCase
 
         $thread->setReferenceObject($widget);
 
-        $this->assertInstanceOf('Epiphyte\Widget', $thread->getReferenceObject());
+        $this->assertInstanceOf('Checkhov\Widget', $thread->getReferenceObject());
 
         $thread->clearReferenceObject();
 
@@ -118,7 +118,7 @@ class ParleyThreadTests extends ParleyTestCase
         $thread->close($user1);
 
         $this->assertEquals($thread->isClosed(), true);
-        $this->assertInstanceOf('Epiphyte\User', $thread->getCloser());
+        $this->assertInstanceOf('Chekhov\User', $thread->getCloser());
     }
 
     public function testOpenAClosedTest()
