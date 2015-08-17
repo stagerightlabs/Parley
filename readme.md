@@ -1,39 +1,59 @@
 ## Parley: Polymorphic Messaging for Laravel Applications
 
-This package facilitates inter-application notifications, allowing messages to be sent between different object types.  Each notification is represented as a Thread (Parley\Models\Thread), and each Thread can have multiple Messages (Parley\Models\Message), allowing for back-and-forth communication within a given thread (this is optional.)
+This package enables messages to be sent between different object types within a Laravel application.  Any model that implements the ```Parley\Contracts\ParleyableInterface``` can be used to send or receive Parley messages.  Each message is represented as a Thread (```Parley\Models\Thread```), and each Thread can have multiple Messages (```Parley\Models\Message```), allowing for back-and-forth communication within a given thread (if you want.)
 
-Any model that uses the ```ParleyableTrait``` can be used to send or receive Parley messages.
+Imagine you have a Laravel application that manages softball teams. You want to be able to send notifications to team members whenever a new game has been scheduled.  In this scenario, we could have three model types: ```Epiphyte\User```: $admin, $user, ```Epiphyte\Team```: $teamA, $teamB and ```Epiphyte\Game```: $game.
 
-Imagine you have a Laravel application that manages softball teams. You want to be able to send notifications to team members whenever a new game has been scheduled.  In this scenario, we have three model types: ```Epiphyte\User```, ```Epiphyte\Team``` and ```Epiphyte\Game```.
-
-To send the notification, you would do this when the new game has been created:
+To send the notification you would do this when the new game has been created:
 
 ```php
-$admin = Epiphyte\User::where('email', 'admin@admin.com')->first();
-$game = Epiphyte\Game::create();
-$teamA = Epiphyte\Team::find(1);
-$teamB = EpiphyteTeam::find(2);
-
-Parley::discuss("A new game with {$teamB->name} has been added", $game)
-    ->amongst([$admin, $teamA])
-    ->message([
-        'body'   => "A new match has been added to the season!",
-        'alias'  => $admin->name,
-        'author' => $admin
-    ]);
+Parley::discuss([
+    'subject' => "A New Game has been added",
+    'body'   => "A new game with {$teamB->name} has been added to the schedule.",
+    'alias'  => "The Commissioner",
+    'author' => $admin
+, $game)->withParticipant($teamA);
 ```
 
-When a team member from team A logs in, you can retrieve their messages like so:
+or, if you want to send a notification to both teams:
 
 ```php
-$user = Auth::user();
-$messages = Parley::gather()->belongingTo([$user, $user->team])->get();
-
+Parley::discuss([
+    'subject' => "Expect Rain Delays on Saturday",
+    'body'   => "The forecast for saturday is not looking good - be prepared for delays",
+    'author' => $admin
+, $game)->withParticipants([$teamA, $teamB]);
 ```
 
-The ```$messages``` collection contains all of the threads (Parley\Thread) associated wither with the user or with the user's team.
+or, you can even send messages to each individual user on both teams: 
 
-More usage examples can be found here.
+```php
+Parley::discuss([
+    'subject' => "Updated Parking Regulations",
+    'body'   => "Given the incident on Saturday, we have decided to update league parking rules.",
+    'author' => $admin
+, $game)->withParticipants([$teamA->players, $teamB->players]);
+```
+
+When a player from team A logs in, their unread messages can be retrieved like so:
+
+```php
+$messages = Parley::gatherFor([$user, $user->team])->unread()->get();
+```
+
+In this example, the ```$messages``` collection contains all of the thread associated wither with the user or with the user's team.  
+
+If this user wants to reply to a message, it can be done like this:
+
+```php
+$thread = Parley::find(1);
+$thread->reply([
+    'body' => 'I think it is worth noting that the cause of the problem was mostly due to players from Team B.',
+    'author' => $user
+]);
+```
+
+Check out the [API Documentation](https://github.com/SRLabs/Parley/wiki/API-2.0) for more usage details.
 
 
 ### Installation
@@ -44,69 +64,114 @@ This package can be installed using composer:
 $ composer require srlabs/parley
 ```
 
-Make sure you use the version most appropriate for the type of Laravel application you are running:
+Make sure you use the version most appropriate for your Laravel Installation:
 
 | Laravel Version  | Parley Version  | Packagist Branch |
 |---|---|---|
 | 4.2.* | 1.* | ```"srlabs/parley": "~1"``` |
 | 5.* | 2.* | ```"srlabs/parley": "~2"``` |
 
-The rest of these instructions are for Parley 1.0 / Laravel 4.2:
+The rest of these instructions are for Parley 2.0 / Laravel 5.*:
 
-Add the Service Provider to your ```app/config/app.php``` file:
+Add the Service Provider and Alias to your ```config/app.php``` file:
 
 ```php
 'providers' => array(
-    ...
-    'Parley\ParleyServiceProvider',
-    ...
+    // ...
+    Parley\ParleyServiceProvider::class,
+    // ...
 )
 ```
 
-The service provider will automatically register the ```Parley``` and ```Hashids``` facade aliases, if they have not been registered already.
-
-Next, run the Migrations:
-
-```shell
-php artisan migrate --package=srlabs/parley
+```php
+'aliases' => [
+    // ...
+    'Parley'       => Parley\Facades\Parley::class,
+    // ...
+],
 ```
 
-Add the Parleyable trait to any models for which you want to enable messaging:
+Next, publish and run the migrations
+
+```shell
+php artisan vendor:publish --provider="Parley\ParleyServiceProvider" --tag="migrations"
+php artisan migrate
+```
+
+Add the ```Parley\Contracts\ParleyableInterface``` interface to each of the models you want to send or receive messages, and implement the 
 
 ```php
-use Parley\Traits\ParleyableTrait;
+use Parley\Contracts\ParleyableInteraface;
 
-class User extends \Illuminate\Database\Eloquent\Model {
+class User extends \Illuminate\Database\Eloquent\Model implements ParleyableInterface {
+    
     // ..
 
-    use ParleyableTrait;
+    /**
+      * Each Parleyable object must implement an 'alias' accessor which is used 
+     * as a display name associated with messages sent by this model.
+     *
+     * @return mixed
+     */
+    public function getParleyAliasAttribute() {
+        return "{$this->attributes['first_name']} {$this->attributes['last_name']}"; 
+    }
 
-    // ..
+    /**
+     * Each Parleyable object must provide an integer id value.  Usually this is can be
+     * as simple as "return $this->attributes['id'];".
+     *
+     * @return int
+     */
+    public function getParleyIdAttribute(){
+        return $this->attributes['id'];
+    }
 }
 ```
 
+NB: You can manually specify an "alias" attribute for each thread and message if you don't want to use the alias 
+
 You are now ready to go!
 
-## Events
+### Events
 
-Whenever a new thread is created, or a new "reply" is added to a thread, an event is fired.  The event names are dynamically generated, as such:
+Whenever a new thread is created, or a new reply message is added, an event is fired.  You can set up your listeners in your EventServiceProvider like so: 
 
-'parley.' . ACTION . '.for.' . MODEL_NAMESPACE . MODEL_NAME;
+```php
+protected $listen = [
+    'Parley\Events\ParleyThreadCreated' => [
+        'App\Listeners\FirstEventListener',
+        'App\Listeners\SecondEventListener'
+    ],
+    'Parley\Events\ParleyMessageAdded' => [
+        'App\Listeners\ThirdEventListener',
+        'App\Listeners\FourthEventListener'
+    ],
+]
+```
 
-So when the first Parley message from the example above is created, two events are fired:
+Each event is passed the Thread object and the author of the current message.  You can retrieve these objects using the ```getThread()``` and ```getAuthor``` methods: 
 
-* 'parley.new.thread.for.Epiphyte.Team'
-* 'parley.new.thread.for.Epiphyte.User'
+```php
+class AppEventListener 
+{
+    
+    /**
+     * Handle the event.
+     *
+     * @param  SiteEvent  $event
+     * @return void
+     */
+    public function handle(ParleyEvent $event)
+    {
+        // Fetch the thread
+        $thread = $event->getThread();
 
-When a reply is posted to that thread, two new events will be fired:
+        // Fetch the author
+        $author = $event->getAuthor(); 
 
-* 'parley.new.reply.for.Epiphyte.Team'
-* 'parley.new.reply.for.Epiphyte.User'
-
-Each event has three objects that are broadcast with it:
-
-* $action (string): the type of action that occured, i.e 'new.thread'
-* $thread (Parley\Models\Thread): The related thread object
-* $member (Eloquent\Model): The member object being notified about the thread, either ```Epiphyte\Team``` or ```Epiphyte\User``` in the examples above.
-
+        // ...
+    }
+}
+```
 
