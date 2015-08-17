@@ -56,7 +56,7 @@ $thread->reply([
 ]);
 ```
 
-Check out the [API Documentation](https://github.com/SRLabs/Parley/wiki/API-2.0) for more usage details.
+Check out the [API Documentation](https://github.com/SRLabs/Parley/wiki/API-2.0) for more usage details.  Additional usage examples can be found [here](http://stagerightlabs.com/projects/parley).
 
 
 ### Installation
