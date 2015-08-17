@@ -30,12 +30,11 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Assign a group of members to this thread
      *
-     * @param $members
      * @return $this
      */
-    public function withParticipants($members)
+    public function withParticipants()
     {
-        $members = $this->ensureArrayable($members);
+        $members = func_get_args();
 
         foreach ($members as $member) {
             $this->addMember($member);
@@ -51,21 +50,35 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      * Convenience wrapper for withParticipants()
      *
      * @param $members
-     * @return mixed
+     * @return $this
      */
-    public function withParticipant($members)
+    public function withParticipant()
     {
-        return $this->withParticipants($members);
+        $this->withParticipants(func_get_args());
+
+        return $this;
+    }
+
+    /**
+     * Convenience wrapper for the Add Member method
+     *
+     * @return $this
+     */
+    public function addParticipant($member)
+    {
+        $this->addMember($member);
+
+        return $this;
     }
 
     /**
      * Add a single member this thread
      *
      * @param $member
-     * @return bool
+     * @return void
      * @throws NonParleyableMemberException
      */
-    public function addMember($member)
+    protected function addMember($member)
     {
         // If we have been passed an Eloquent collection, add each member recursively
         if ($member instanceof Collection) {
@@ -73,7 +86,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
                 $this->addMember($m);
             }
 
-            return true;
+            return;
         }
 
         // Or perhaps we have been given an array...
@@ -82,29 +95,20 @@ class Thread extends \Illuminate\Database\Eloquent\Model
                 $this->addMember($m);
             }
 
-            return true;
+            return;
         }
 
         // Is this Member parleyable?
         $this->confirmObjectIsParleyable($member);
 
         // Add the member to the Parley
-        return \DB::table('parley_members')->insert(array(
+        \DB::table('parley_members')->insert(array(
             'parley_thread_id' => $this->id,
-            'parleyable_id' => $member->id,
+            'parleyable_id' => $member->getParleyIdAttribute(),
             'parleyable_type' => get_class($member)
         ));
-    }
 
-    /**
-     * Convenience wrapper for the Add Member method
-     *
-     * @param $member
-     * @return bool
-     */
-    public function addParticipant($member)
-    {
-        return $this->addMember($member);
+        return;
     }
 
     /**
@@ -112,31 +116,36 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      *
      * @param $member
      *
-     * @return mixed
+     * @return void
      * @throws NonParleyableMemberException
      */
-    public function removeMember($member)
+    protected function removeMember($member)
     {
         // Is this Member parleyable?
         $this->confirmObjectIsParleyable($member, true);
 
         // Remove this member from the Thread
-        return \DB::table('parley_members')
+        \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
-            ->where('parleyable_id', $this->id)
+            ->where('parleyable_id', $member->getParleyIdAttribute())
             ->where('parleyable_type', get_class($member))
             ->delete();
+
+        return;
+
     }
 
     /**
      * Convenience wrapper for the remove member method
      *
      * @param $member
-     * @return mixed
+     * @return $this
      */
     public function removeParticipant($member)
     {
-        return $this->removeMember($member);
+        $this->removeMember($member);
+
+        return $this;
     }
 
     /**
@@ -154,7 +163,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         return (count(
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
-                ->where('parleyable_id', $member->id)
+                ->where('parleyable_id', $member->getParleyIdAttribute())
                 ->where('parleyable_type', get_class($member))
                 ->get()
         ) > 0);
@@ -188,7 +197,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
             $exclude = false;
 
             foreach ($exclusions as $target) {
-                if ($member->parleyable_id == $target->id && $member->parleyable_type == get_class($target)) {
+                if ($member->parleyable_id == $target->getParleyIdAttribute() && $member->parleyable_type == get_class($target)) {
                     $exclude = true;
                 }
             }
@@ -221,8 +230,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         // We can assume that the author has read their own message.
         $this->markReadForMembers($messageData['author']);
 
-        // Mark the thread as "unread" for the author
-        $this->markReadForMembers($messageData['author']);
     }
 
     /**
@@ -306,7 +313,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         $this->confirmObjectIsReferable($object);
 
         // Set the object reference fields
-        $this->object_id = $object->id;
+        $this->object_id = $object->getKey();
         $this->object_type = get_class($object);
 
         return $this->save();
@@ -361,7 +368,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         $this->closed_at = new Carbon;
 
         // Make a note of which member closed the thread
-        $this->closed_by_id = $member->id;
+        $this->closed_by_id = $member->getParleyIdAttribute();
         $this->closed_by_type = get_class($member);
 
         return $this->save();
@@ -418,7 +425,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     {
         $status = \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
-            ->where('parleyable_id', $member->id)
+            ->where('parleyable_id', $member->getParleyIdAttribute())
             ->where('parleyable_type', get_class($member))
             ->pluck('is_read');
 
@@ -439,7 +446,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         foreach ($members as $member) {
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
-                ->where('parleyable_id', $member->id)
+                ->where('parleyable_id', $member->getParleyIdAttribute())
                 ->where('parleyable_type', get_class($member))
                 ->update(['is_read' => 1]);
         }
@@ -475,7 +482,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         foreach ($members as $member) {
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
-                ->where('parleyable_id', $member->id)
+                ->where('parleyable_id', $member->getParleyIdAttribute())
                 ->where('parleyable_type', get_class($member))
                 ->update(['is_read' => 0]);
         }
@@ -508,7 +515,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     {
         $status = \DB::table('parley_members')
             ->where('parley_thread_id', $this->id)
-            ->where('parleyable_id', $member->id)
+            ->where('parleyable_id', $member->getParleyIdAttribute())
             ->where('parleyable_type', get_class($member))
             ->pluck('notified');
 
@@ -529,7 +536,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         foreach ($members as $member) {
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
-                ->where('parleyable_id', $member->id)
+                ->where('parleyable_id', $member->getParleyIdAttribute())
                 ->where('parleyable_type', get_class($member))
                 ->update(['notified' => 1]);
         }
@@ -551,7 +558,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         foreach ($members as $member) {
             \DB::table('parley_members')
                 ->where('parley_thread_id', $this->id)
-                ->where('parleyable_id', $member->id)
+                ->where('parleyable_id', $member->getParleyIdAttribute())
                 ->where('parleyable_type', get_class($member))
                 ->update(['notified' => 0]);
         }
@@ -580,7 +587,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         ]);
 
         // Set the message author and author_alias
-        $alias  = array_key_exists('alias', $messageData) ? $messageData['alias'] : $messageData['author']->alias;
+        $alias  = array_key_exists('alias', $messageData) ? $messageData['alias'] : $messageData['author']->parley_alias;
         $message->setAuthor($messageData['author'], $alias);
 
         // Create the Message Object

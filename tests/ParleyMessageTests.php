@@ -57,10 +57,10 @@ class ParleyMessageTests extends ParleyTestCase
         $replyMessage   = $parley->newestMessage();
 
         $this->assertInstanceOf('Parley\Models\Message', $initialMessage);
-        $this->assertEquals($initialMessage->author_alias, $this->nikolai->alias);
+        $this->assertEquals($initialMessage->author_alias, $this->nikolai->getParleyAliasAttribute());
 
         $this->assertInstanceOf('Parley\Models\Message', $replyMessage);
-        $this->assertEquals($replyMessage->author_alias, $this->irina->alias);
+        $this->assertEquals($replyMessage->author_alias, $this->irina->getParleyAliasAttribute());
     }
 
     public function test_setting_and_retrieving_message_author()
@@ -75,9 +75,9 @@ class ParleyMessageTests extends ParleyTestCase
         $updatedAuthor = $message->getAuthor();
 
         $this->assertInstanceOf('Chekhov\User', $originalAuthor);
-        $this->assertEquals('Irina Prozorovna', $originalAuthor->alias);
+        $this->assertEquals('Irina Prozorovna', $originalAuthor->getParleyAliasAttribute());
         $this->assertInstanceOf('Chekhov\Group', $updatedAuthor);
-        $this->assertEquals('The Prozorovs', $updatedAuthor->alias);
+        $this->assertEquals('The Prozorovs', $updatedAuthor->getParleyAliasAttribute());
     }
 
     public function test_retrieve_thread_from_message()

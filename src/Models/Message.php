@@ -57,11 +57,11 @@ class Message extends \Illuminate\Database\Eloquent\Model
         $this->confirmObjectIsReferable($author);
 
         // If an author alias was explicitly specified, use that value instead of the default model alias
-        $alias  = ($alias ? $alias : $author->alias);
+        $alias  = ($alias ? $alias : $author->parley_alias);
 
         // Associate the new Author with this Message
         $this->author_alias = $alias;
-        $this->author_id = $author->id;
+        $this->author_id = $author->getParleyIdAttribute();
         $this->author_type = get_class($author);
 
         return $this->save();

@@ -5,12 +5,12 @@ namespace Parley\Contracts;
 interface ParleyableInterface
 {
     /**
-     * Each Parleyable object must implement an 'alias' accessor which is used as a
-     * display name that is associated with messages sent by this model.
+     * Each Parleyable object must implement an 'alias' accessor which is used
+     * as a display name associated with messages sent by this model.
      *
      * @return mixed
      */
-    public function getAliasAttribute();
+    public function getParleyAliasAttribute();
 
     /**
      * Each Parleyable object must provide an integer id value.  Usually this is can be
@@ -18,5 +18,5 @@ interface ParleyableInterface
      *
      * @return int
      */
-    public function parleyId();
+    public function getParleyIdAttribute();
 }

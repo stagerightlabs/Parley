@@ -20,8 +20,7 @@ class ParleyThreadTests extends ParleyTestCase
     public function test_adding_member_to_thread()
     {
         $parley = $this->simulate_a_conversation('Happy Name Day!');
-        $parley->addMember($this->prozorovGroup);
-
+        $parley->addParticipant($this->prozorovGroup);
         $members = $parley->getMembers();
 
         $this->assertEquals($members->count(), 3);
@@ -34,7 +33,7 @@ class ParleyThreadTests extends ParleyTestCase
         $parley = Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
-            'alias'  => $this->nikolai->alias,
+            'alias'  => $this->nikolai->getParleyAliasAttribute(),
             'author' => $this->nikolai
         ])->withParticipants([$this->irina, $this->prozorovGroup]);
 
@@ -77,6 +76,22 @@ class ParleyThreadTests extends ParleyTestCase
         $this->assertEquals($members->count(), 3);
     }
 
+     public function test_adding_members_to_a_thread_via_multiple_arguments()
+    {
+        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+
+        $aleksandr = User::create(['email' => 'aleksandr@vershinin.com']);
+
+        $parley = Parley::discuss([
+            'subject'  => 'You are Invited',
+            'body'   => "Please join us for dinner this evening at our residence.",
+            'author' => $this->prozorovGroup
+        ])->withParticipants($this->irina, $this->nikolai, $aleksandr);
+
+        $members = $parley->getMembers();
+
+        $this->assertEquals($members->count(), 4);
+    }
 
     /**
      * @expectedException Parley\Exceptions\NonParleyableMemberException
@@ -88,7 +103,7 @@ class ParleyThreadTests extends ParleyTestCase
         Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
-            'alias'  => $this->nikolai->alias,
+            'alias'  => $this->nikolai->getParleyAliasAttribute(),
             'author' => $this->nikolai
         ])->withParticipants($widget);
     }
@@ -98,11 +113,11 @@ class ParleyThreadTests extends ParleyTestCase
         $parley = Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
-            'alias'  => $this->nikolai->alias,
+            'alias'  => $this->nikolai->getParleyAliasAttribute(),
             'author' => $this->nikolai
         ])->withParticipants([$this->irina, $this->prozorovGroup]);
 
-        $parley->removeMember($this->prozorovGroup);
+        $parley->removeParticipant($this->prozorovGroup);
 
         $members = $parley->getMembers();
 
@@ -125,7 +140,7 @@ class ParleyThreadTests extends ParleyTestCase
         $parley = Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
-            'alias'  => $this->nikolai->alias,
+            'alias'  => $this->nikolai->getParleyAliasAttribute(),
             'author' => $this->nikolai
         ], $pencils)->withParticipants([$this->irina, $this->prozorovGroup]);
 
@@ -154,7 +169,7 @@ class ParleyThreadTests extends ParleyTestCase
         $parley = Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
-            'alias'  => $this->nikolai->alias,
+            'alias'  => $this->nikolai->getParleyAliasAttribute(),
             'author' => $this->nikolai
         ], $widget)->withParticipants($this->irina);
     }
@@ -164,7 +179,7 @@ class ParleyThreadTests extends ParleyTestCase
         $parley = Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
-            'alias'  => $this->nikolai->alias,
+            'alias'  => $this->nikolai->getParleyAliasAttribute(),
             'author' => $this->nikolai
         ])->withParticipants([$this->irina, $this->prozorovGroup]);
 
@@ -183,7 +198,7 @@ class ParleyThreadTests extends ParleyTestCase
         $parley = Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
-            'alias'  => $this->nikolai->alias,
+            'alias'  => $this->nikolai->getParleyAliasAttribute(),
             'author' => $this->nikolai
         ])->withParticipants([$this->irina, $this->prozorovGroup]);
 
@@ -192,7 +207,7 @@ class ParleyThreadTests extends ParleyTestCase
 
         $this->assertTrue($parley->isClosed());
         $this->assertInstanceOf('Chekhov\User', $closer);
-        $this->assertEquals('Irina Prozorovna', $closer->alias);
+        $this->assertEquals('Irina Prozorovna', $closer->getParleyAliasAttribute());
     }
 
     public function test_retrieving_the_newest_message_in_a_thread()

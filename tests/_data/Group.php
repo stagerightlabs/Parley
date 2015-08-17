@@ -8,7 +8,7 @@ class Group extends \Illuminate\Database\Eloquent\Model implements ParleyableInt
 {
     protected $fillable = ['name'];
 
-    public function getAliasAttribute()
+    public function getParleyAliasAttribute()
     {
         return $this->name;
     }
@@ -19,7 +19,7 @@ class Group extends \Illuminate\Database\Eloquent\Model implements ParleyableInt
      *
      * @return int
      */
-    public function parleyId()
+    public function getParleyIdAttribute()
     {
         return $this->attributes['id'];
     }
