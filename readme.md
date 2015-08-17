@@ -89,7 +89,7 @@ Add the Service Provider and Alias to your ```config/app.php``` file:
 ```php
 'aliases' => [
     // ...
-    'Parley'       => Parley\Facades\Parley::class,
+    'Parley'    => Parley\Facades\Parley::class,
     // ...
 ],
 ```
