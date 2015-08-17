@@ -49,7 +49,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Convenience wrapper for withParticipants()
      *
-     * @param $members
      * @return $this
      */
     public function withParticipant()
@@ -132,7 +131,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
             ->delete();
 
         return;
-
     }
 
     /**
@@ -229,7 +227,6 @@ class Thread extends \Illuminate\Database\Eloquent\Model
 
         // We can assume that the author has read their own message.
         $this->markReadForMembers($messageData['author']);
-
     }
 
     /**

@@ -43,7 +43,12 @@ class ParleyManager
         $thread = Thread::create(['subject' => e($messageData['subject'])]);
         $thread->setInitialMessage($messageData);
 
-        // Set the reference object, if one has been assigned
+        // Set the reference object if it has been provided in the message data
+        if (array_key_exists('regarding', $messageData)) {
+            $thread->setReferenceObject($messageData['regarding']);
+        }
+
+        // Set the reference object if it has been passed as a parameter to the discuss method
         if ($object) {
             $thread->setReferenceObject($object);
         }

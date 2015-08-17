@@ -58,6 +58,23 @@ class ParleyManagerTests extends ParleyTestCase
         $this->assertEquals($parley->subject, 'Happy Name Day!');
     }
 
+    public function test_parley_discussion_with_reference_object_in_message()
+    {
+        $widgetObject = Widget::create(['name' => 'Gift']);
+
+        $parley = Parley::discuss([
+                'subject'  => 'Happy Name Day!',
+                'body' => "Congratulations on your 20th name day!",
+                'alias' => $this->irina->alias,
+                'author' => $this->irina,
+                'regarding' => $widgetObject
+            ])->withParticipants($this->nikolai);
+
+        $this->assertInstanceOf('Parley\Models\Thread', $parley);
+        $this->assertInstanceOf('Chekhov\Widget', $parley->getReferenceObject());
+        $this->assertEquals($parley->subject, 'Happy Name Day!');
+    }
+
     public function test_gathering_member_threads()
     {
         // Parley #1

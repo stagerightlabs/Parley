@@ -11,8 +11,9 @@ Parley::discuss([
     'subject' => "A New Game has been added",
     'body'   => "A new game with {$teamB->name} has been added to the schedule.",
     'alias'  => "The Commissioner",
-    'author' => $admin
-, $game)->withParticipant($teamA);
+    'author' => $admin,
+    'regarding' => $game
+])->withParticipant($teamA);
 ```
 
 or, if you want to send a notification to both teams:
@@ -21,8 +22,9 @@ or, if you want to send a notification to both teams:
 Parley::discuss([
     'subject' => "Expect Rain Delays on Saturday",
     'body'   => "The forecast for saturday is not looking good - be prepared for delays",
-    'author' => $admin
-, $game)->withParticipants([$teamA, $teamB]);
+    'author' => $admin,
+    'regarding' => $game
+])->withParticipants([$teamA, $teamB]);
 ```
 
 or, you can even send messages to each individual user on both teams: 
@@ -31,8 +33,9 @@ or, you can even send messages to each individual user on both teams:
 Parley::discuss([
     'subject' => "Updated Parking Regulations",
     'body'   => "Given the incident on Saturday, we have decided to update league parking rules.",
-    'author' => $admin
-, $game)->withParticipants([$teamA->players, $teamB->players]);
+    'author' => $admin,
+    'regarding' => $game
+])->withParticipants([$teamA->players, $teamB->players]);
 ```
 
 When a player from team A logs in, their unread messages can be retrieved like so:
