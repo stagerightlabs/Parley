@@ -2,8 +2,9 @@
 
 With Parley you can easily send messages between different object types within a Laravel application.   These "conversations" can be bi-directional, allowing for easy communication with your users about topics relevant to your application. 
 
+* Associate threads with reference objects, such as orders or any other eloquent model instance
 * Keep track of which members have or haven't "read" the messages
-* 
+* Optionally mark threads as "open" or "closed"
 
 Here is an example:
 
