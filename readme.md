@@ -1,10 +1,11 @@
 ## Parley: Polymorphic Messaging for Laravel Applications
 
-This package enables messages to be sent between different object types within a Laravel application.  Any model that implements the ```Parley\Contracts\ParleyableInterface``` can be used to send or receive Parley messages.  Each message is represented as a Thread (```Parley\Models\Thread```), and each Thread can have multiple Messages (```Parley\Models\Message```), allowing for back-and-forth communication within a given thread (if you want.)
+With Parley you can easily send messages between different object types within a Laravel application.   These "conversations" can be bi-directional, allowing for easy communication with your users about topics relevant to your application. 
 
-Imagine you have a Laravel application that manages softball teams. You want to be able to send notifications to team members whenever a new game has been scheduled.  In this scenario, we could have three model types: ```Epiphyte\User```: $admin, $user, ```Epiphyte\Team```: $teamA, $teamB and ```Epiphyte\Game```: $game.
+* Keep track of which members have or haven't "read" the messages
+* 
 
-To send the notification you would do this when the new game has been created:
+Here is an example:
 
 ```php
 Parley::discuss([
@@ -16,42 +17,18 @@ Parley::discuss([
 ])->withParticipant($teamA);
 ```
 
-or, if you want to send a notification to both teams:
-
-```php
-Parley::discuss([
-    'subject' => "Expect Rain Delays on Saturday",
-    'body'   => "The forecast for saturday is not looking good - be prepared for delays",
-    'author' => $admin,
-    'regarding' => $game
-])->withParticipants([$teamA, $teamB]);
-```
-
-or, you can even send messages to each individual user on both teams: 
-
-```php
-Parley::discuss([
-    'subject' => "Updated Parking Regulations",
-    'body'   => "Given the incident on Saturday, we have decided to update league parking rules.",
-    'author' => $admin,
-    'regarding' => $game
-])->withParticipants([$teamA->players, $teamB->players]);
-```
-
-When a player from team A logs in, their unread messages can be retrieved like so:
+When a player logs in, their unread Parley messages can be retrieved like so:
 
 ```php
 $messages = Parley::gatherFor([$user, $user->team])->unread()->get();
 ```
-
-In this example, the ```$messages``` collection contains all of the thread associated wither with the user or with the user's team.  
 
 If this user wants to reply to a message, it can be done like this:
 
 ```php
 $thread = Parley::find(1);
 $thread->reply([
-    'body' => 'I think it is worth noting that the cause of the problem was mostly due to players from Team B.',
+    'body' => 'Thanks for the heads up! We will bring snacks.',
     'author' => $user
 ]);
 ```
@@ -101,38 +78,12 @@ php artisan vendor:publish --provider="Parley\ParleyServiceProvider" --tag="migr
 php artisan migrate
 ```
 
-Add the ```Parley\Contracts\ParleyableInterface``` interface to each of the models you want to send or receive messages, and implement the 
+Any Eloquent Model that implements the ```Parley\Contracts\ParleyableInterface``` can be used to send or receive Parley messages.  To fulfill that contract, you need to have ```getParleyAliasAttribute``` and ```getParleyIdAttribute``` methods available on that model: 
 
-```php
-use Parley\Contracts\ParleyableInteraface;
+* ```getParleyAliasAttribute()``` - Specify the "display name" for the model participating in a Parley Conversation.  For users this could be their username, or their first and last names combined.  
+* ```getParleyIdAttribute()``` - Specify the integer id you want to have represent this model in the Parley database tables.  It is most likely that you will want to use the model's ```id``` attribute here, but that is not always the case.   
 
-class User extends \Illuminate\Database\Eloquent\Model implements ParleyableInterface {
-    
-    // ..
-
-    /**
-      * Each Parleyable object must implement an 'alias' accessor which is used 
-     * as a display name associated with messages sent by this model.
-     *
-     * @return mixed
-     */
-    public function getParleyAliasAttribute() {
-        return "{$this->attributes['first_name']} {$this->attributes['last_name']}"; 
-    }
-
-    /**
-     * Each Parleyable object must provide an integer id value.  Usually this is can be
-     * as simple as "return $this->attributes['id'];".
-     *
-     * @return int
-     */
-    public function getParleyIdAttribute(){
-        return $this->attributes['id'];
-    }
-}
-```
-
-NB: You can manually specify an "alias" attribute for each thread and message if you don't want to use the alias 
+NB: While you are required to provide an alias for each Parleyable Model, You are not required to use that alias when creating threads - you can optionally specify a different "alias" attribute when creating messages.
 
 You are now ready to go!
 
