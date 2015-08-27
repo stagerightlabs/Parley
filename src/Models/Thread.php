@@ -24,7 +24,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     protected $table = 'parley_threads';
     protected $dates = ['created_at', 'updated_at', 'closed_at', 'deleted_at'];
     protected $fillable   = [
-        'subject', 'object_id', 'object_type', 'resolved_at', 'resolve_by_id', 'resolved_by_type'
+        'subject', 'object_id', 'object_type', 'resolved_at', 'resolved_by_id', 'resolved_by_type'
     ];
 
     /**
