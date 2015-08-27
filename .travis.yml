@@ -8,6 +8,8 @@ php:
 
 before_script:
   - composer self-update
-  - composer install --prefer-source --no-interaction --dev
+  - composer install --prefer-dist --no-interaction
 
 script: phpunit
+
+sudo: false
