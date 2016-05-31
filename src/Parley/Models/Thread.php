@@ -33,10 +33,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      *
      * @return array
      */
-    public function getDates()
-    {
-        return ['created_at', 'updated_at', 'closed_at', 'deleted_at'];
-    }
+    public $dates = ['closed_at', 'deleted_at'];
 
     /**
      * Allow for Soft-Deleting of Threads
@@ -332,7 +329,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function isClosed()
     {
-        return (! is_null($this->closed_at));
+        return (bool)$this->closed_at;
     }
 
     /**
