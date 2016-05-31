@@ -33,7 +33,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      *
      * @return array
      */
-    public $dates = ['closed_at', 'deleted_at'];
+    public $dates = ['deleted_at'];
 
     /**
      * Allow for Soft-Deleting of Threads
