@@ -378,7 +378,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
      */
     public function isClosed()
     {
-        return (! is_null($this->closed_at));
+        return (bool)$this->closed_at;
     }
 
     /**
