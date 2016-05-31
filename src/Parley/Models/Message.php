@@ -12,11 +12,10 @@ class Message extends \Illuminate\Database\Eloquent\Model
 
     protected $fillable = ['body', 'is_read', 'parley_thread_id', 'author_id', 'author_type', 'author_alias'];
 
-    public function getDates()
-    {
-        return ['created_at', 'updated_at', 'sent_at'];
-    }
-
+    /**
+     * Thread
+     * @return [type] [description]
+     */
     public function thread()
     {
         return $this->belongsTo('Parley\Models\Thread', 'parley_thread_id');
