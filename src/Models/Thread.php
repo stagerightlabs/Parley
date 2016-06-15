@@ -424,7 +424,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
             ->where('parley_thread_id', $this->id)
             ->where('parleyable_id', $member->getParleyIdAttribute())
             ->where('parleyable_type', get_class($member))
-            ->pluck('is_read');
+            ->value('is_read');
 
         return (bool) $status;
     }
@@ -514,7 +514,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
             ->where('parley_thread_id', $this->id)
             ->where('parleyable_id', $member->getParleyIdAttribute())
             ->where('parleyable_type', get_class($member))
-            ->pluck('notified');
+            ->value('notified');
 
         return (bool) $status;
     }

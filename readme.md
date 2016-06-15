@@ -52,7 +52,9 @@ Make sure you use the version most appropriate for your Laravel Installation:
 | Laravel Version  | Parley Version  | Packagist Branch |
 |---|---|---|
 | 4.2.* | 1.* | ```"srlabs/parley": "~1"``` |
-| 5.* | 2.* | ```"srlabs/parley": "~2"``` |
+| 5.1.* | 2.0.* | ```"srlabs/parley": "~2.0"``` |
+| 5.2.* | 2.1.* | ```"srlabs/parley": "~2.1"``` |
+
 
 The rest of these instructions are for Parley 2.0 / Laravel 5.*:
 
