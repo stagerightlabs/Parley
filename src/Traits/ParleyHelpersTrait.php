@@ -23,7 +23,7 @@ trait ParleyHelpersTrait
         }
 
         if (! $silent) {
-            $objectClass = get_class($object);
+            $objectClass = $object ? get_class($object) : '(Non-object)';
             throw new NonParleyableMemberException("The {$objectClass} class does not implement the ParleyableInterface");
         }
 
