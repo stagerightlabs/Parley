@@ -35,7 +35,7 @@ class ParleyServiceProvider extends ServiceProvider
     public function register()
     {
         // Register the Parley Manager to the IOC Container
-        $this->app['parley'] = $this->app->share(function ($app) {
+        $this->app->singleton('parley',function ($app) {
             return new ParleyManager;
         });
     }

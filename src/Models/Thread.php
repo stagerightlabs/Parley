@@ -289,11 +289,12 @@ class Thread extends \Illuminate\Database\Eloquent\Model
     /**
      * Return the Collection of Messages associated with this Thread
      *
+     * @param bool $latestFirst
      * @return \Illuminate\Support\Collection
      */
-    public function messages()
+    public function messages($latestFirst = true)
     {
-        return $this->hasMany('Parley\Models\Message', 'parley_thread_id')->orderBy('created_at', 'desc');
+        return $this->hasMany('Parley\Models\Message', 'parley_thread_id')->orderBy('created_at', $latestFirst ? 'desc' : 'asc');
     }
 
     /**
