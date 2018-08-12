@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/SRLabs/Parley.svg?branch=master)](https://travis-ci.org/SRLabs/Parley)
 
-With Parley you can easily send messages between different object types within a Laravel application.   These "conversations" can be bi-directional, allowing for easy communication with your users about topics relevant to your application. 
+With Parley you can easily send messages between different object types within a Laravel application.   These "conversations" can be bi-directional, allowing for easy communication with your users about topics relevant to your application.
 
 * Associate threads with reference objects, such as orders or any other eloquent model instance
 * Keep track of which members have or haven't "read" the messages
@@ -54,6 +54,7 @@ Make sure you use the version most appropriate for your Laravel Installation:
 | 4.2.* | 1.* | ```"srlabs/parley": "~1"``` |
 | 5.1.* | 2.0.* | ```"srlabs/parley": "~2.0"``` |
 | 5.2.* | 2.1.* | ```"srlabs/parley": "~2.1"``` |
+| 5.6.* | 2.2.* | ```"srlabs/parley": "~2.2"``` |
 
 
 The rest of these instructions are for Parley 2.0 / Laravel 5.*:
@@ -83,10 +84,10 @@ php artisan vendor:publish --provider="Parley\ParleyServiceProvider" --tag="migr
 php artisan migrate
 ```
 
-Any Eloquent Model that implements the ```Parley\Contracts\ParleyableInterface``` can be used to send or receive Parley messages.  To fulfill that contract, you need to have ```getParleyAliasAttribute``` and ```getParleyIdAttribute``` methods available on that model: 
+Any Eloquent Model that implements the ```Parley\Contracts\ParleyableInterface``` can be used to send or receive Parley messages.  To fulfill that contract, you need to have ```getParleyAliasAttribute``` and ```getParleyIdAttribute``` methods available on that model:
 
-* ```getParleyAliasAttribute()``` - Specify the "display name" for the model participating in a Parley Conversation.  For users this could be their username, or their first and last names combined.  
-* ```getParleyIdAttribute()``` - Specify the integer id you want to have represent this model in the Parley database tables.  It is most likely that you will want to use the model's ```id``` attribute here, but that is not always the case.   
+* ```getParleyAliasAttribute()``` - Specify the "display name" for the model participating in a Parley Conversation.  For users this could be their username, or their first and last names combined.
+* ```getParleyIdAttribute()``` - Specify the integer id you want to have represent this model in the Parley database tables.  It is most likely that you will want to use the model's ```id``` attribute here, but that is not always the case.
 
 NB: While you are required to provide an alias for each Parleyable Model, You are not required to use that alias when creating threads - you can optionally specify a different "alias" attribute when creating messages.
 
@@ -94,7 +95,7 @@ You are now ready to go!
 
 ### Events
 
-Whenever a new thread is created, or a new reply message is added, an event is fired.  You can set up your listeners in your EventServiceProvider like so: 
+Whenever a new thread is created, or a new reply message is added, an event is fired.  You can set up your listeners in your EventServiceProvider like so:
 
 ```php
 protected $listen = [
@@ -109,12 +110,12 @@ protected $listen = [
 ]
 ```
 
-Each event is passed the Thread object and the author of the current message.  You can retrieve these objects using the ```getThread()``` and ```getAuthor``` methods: 
+Each event is passed the Thread object and the author of the current message.  You can retrieve these objects using the ```getThread()``` and ```getAuthor``` methods:
 
 ```php
-class AppEventListener 
+class AppEventListener
 {
-    
+
     /**
      * Handle the event.
      *
@@ -127,10 +128,9 @@ class AppEventListener
         $thread = $event->getThread();
 
         // Fetch the author
-        $author = $event->getAuthor(); 
+        $author = $event->getAuthor();
 
         // ...
     }
 }
 ```
-
