@@ -41,7 +41,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         }
 
         // Send an alert to any application listeners that might be interested
-        \Event::fire(new ParleyThreadCreated($this, $this->getThreadAuthor()));
+        event(new ParleyThreadCreated($this, $this->getThreadAuthor()));
 
         return $this;
     }
