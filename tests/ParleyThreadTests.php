@@ -76,7 +76,7 @@ class ParleyThreadTests extends ParleyTestCase
         $this->assertEquals($members->count(), 3);
     }
 
-     public function test_adding_members_to_a_thread_via_multiple_arguments()
+    public function test_adding_members_to_a_thread_via_multiple_arguments()
     {
         $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
 
@@ -93,11 +93,10 @@ class ParleyThreadTests extends ParleyTestCase
         $this->assertEquals($members->count(), 4);
     }
 
-    /**
-     * @expectedException Parley\Exceptions\NonParleyableMemberException
-     */
     public function test_adding_nonparleyable_object_as_member()
     {
+        $this->expectException(Parley\Exceptions\NonParleyableMemberException::class);
+
         $widget = Widget::create(['name' => 'Gift']);
 
         Parley::discuss([
@@ -159,14 +158,13 @@ class ParleyThreadTests extends ParleyTestCase
         $this->assertEquals('Penknife', $newReferenceObject->name);
     }
 
-    /**
-     * @expectedException Parley\Exceptions\NonReferableObjectException
-     */
     public function test_adding_object_without_id_as_reference_object()
     {
+        $this->expectException(Parley\Exceptions\NonReferableObjectException::class);
+
         $widget = new Widget();
 
-        $parley = Parley::discuss([
+        Parley::discuss([
             'subject'  => 'Happy Name Day!',
             'body'   => 'Congratulations on your 20th name day!',
             'alias'  => $this->nikolai->getParleyAliasAttribute(),

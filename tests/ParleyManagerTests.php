@@ -128,11 +128,10 @@ class ParleyManagerTests extends ParleyTestCase
         $this->assertInstanceOf('Illuminate\Support\Collection', $irinaThreads);
     }
 
-    /**
-     * @expectedException \Parley\Exceptions\NonParleyableMemberException
-     */
     public function test_gathering_threads_for_invalid_member()
     {
+        $this->expectException(\Parley\Exceptions\NonParleyableMemberException::class);
+
         $this->simulate_a_conversation("Happy Name Day!");
 
         $group = null;
