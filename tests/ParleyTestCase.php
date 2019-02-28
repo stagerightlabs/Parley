@@ -13,7 +13,7 @@ class ParleyTestCase extends \Orchestra\Testbench\TestCase
     /**
      * Setup the test environment, per the Orchestra\Testbench\TestCase documentation
      */
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 

@@ -257,7 +257,7 @@ class Thread extends \Illuminate\Database\Eloquent\Model
         $this->touch();
 
         // Send an alert to any application listeners that might be interested
-        \Event::fire(new ParleyMessageAdded($this, $this->getThreadAuthor()));
+        \Event::dispatch(new ParleyMessageAdded($this, $this->getThreadAuthor()));
 
         return $this;
     }
