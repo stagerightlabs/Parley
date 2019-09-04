@@ -47,18 +47,6 @@ This package can be installed using composer:
 $ composer require srlabs/parley
 ```
 
-Make sure you use the version most appropriate for your Laravel Installation:
-
-| Laravel Version  | Parley Version  | Packagist Branch |
-|---|---|---|
-| 4.2.* | 1.* | ```"srlabs/parley": "~1"``` |
-| 5.1.* | 2.0.* | ```"srlabs/parley": "~2.0"``` |
-| 5.2.* | 2.1.* | ```"srlabs/parley": "~2.1"``` |
-| 5.6.* | 2.2.* | ```"srlabs/parley": "~2.2"``` |
-
-
-The rest of these instructions are for Parley 2.0 / Laravel 5.*:
-
 Add the Service Provider and Alias to your ```config/app.php``` file:
 
 ```php
