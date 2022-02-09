@@ -1,11 +1,9 @@
 <?php
 
-use Illuminate\Database\Eloquent;
-use Illuminate\Database\Eloquent\Collection;
-use Parley\Models\Thread;
-use Parley\Exceptions\NonParleyableMemberException;
 use Chekhov\User;
 use Chekhov\Widget;
+use Parley\Facades\Parley;
+use Illuminate\Support\Facades\Event;
 
 class ParleyThreadTests extends ParleyTestCase
 {
@@ -13,7 +11,7 @@ class ParleyThreadTests extends ParleyTestCase
     {
         $parley = $this->simulate_a_conversation('Happy Name Day!');
 
-        $this->assertInstanceOf('Parley\Models\Thread', $parley);
+        $this->assertInstanceOf(\Parley\Models\Thread::class, $parley);
         $this->assertEquals($parley->subject, 'Happy Name Day!');
     }
 
@@ -28,7 +26,7 @@ class ParleyThreadTests extends ParleyTestCase
 
     public function test_adding_members_via_with_participants_method()
     {
-        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+        Event::fake();
 
         $parley = Parley::discuss([
             'subject'  => 'Happy Name Day!',
@@ -40,11 +38,12 @@ class ParleyThreadTests extends ParleyTestCase
         $members = $parley->getMembers();
 
         $this->assertEquals($members->count(), 3);
+        Event::assertDispatched(\Parley\Events\ParleyThreadCreated::class);
     }
 
     public function test_adding_a_collection_of_members_to_a_thread()
     {
-        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+        Event::fake();
 
         $users = User::get();
 
@@ -57,11 +56,12 @@ class ParleyThreadTests extends ParleyTestCase
         $members = $parley->getMembers();
 
         $this->assertEquals($members->count(), 3);
+        Event::assertDispatched(\Parley\Events\ParleyThreadCreated::class);
     }
 
     public function test_adding_an_array_of_members_to_a_thread()
     {
-        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+        Event::fake();
 
         $users = User::get()->all();
 
@@ -74,11 +74,12 @@ class ParleyThreadTests extends ParleyTestCase
         $members = $parley->getMembers();
 
         $this->assertEquals($members->count(), 3);
+        Event::assertDispatched(\Parley\Events\ParleyThreadCreated::class);
     }
 
     public function test_adding_members_to_a_thread_via_multiple_arguments()
     {
-        $this->expectsEvents(Parley\Events\ParleyThreadCreated::class);
+        Event::fake();
 
         $aleksandr = User::create(['email' => 'aleksandr@vershinin.com']);
 
@@ -91,11 +92,12 @@ class ParleyThreadTests extends ParleyTestCase
         $members = $parley->getMembers();
 
         $this->assertEquals($members->count(), 4);
+        Event::assertDispatched(\Parley\Events\ParleyThreadCreated::class);
     }
 
     public function test_adding_nonparleyable_object_as_member()
     {
-        $this->expectException(Parley\Exceptions\NonParleyableMemberException::class);
+        $this->expectException(\Parley\Exceptions\NonParleyableMemberException::class);
 
         $widget = Widget::create(['name' => 'Gift']);
 
@@ -160,7 +162,7 @@ class ParleyThreadTests extends ParleyTestCase
 
     public function test_adding_object_without_id_as_reference_object()
     {
-        $this->expectException(Parley\Exceptions\NonReferableObjectException::class);
+        $this->expectException(\Parley\Exceptions\NonReferableObjectException::class);
 
         $widget = new Widget();
 

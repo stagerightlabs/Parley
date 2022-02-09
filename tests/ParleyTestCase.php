@@ -1,7 +1,8 @@
 <?php
 
-use Chekhov\Group;
 use Chekhov\User;
+use Chekhov\Group;
+use Parley\Facades\Parley;
 
 class ParleyTestCase extends \Orchestra\Testbench\TestCase
 {
